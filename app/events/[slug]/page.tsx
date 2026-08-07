@@ -62,16 +62,16 @@ export default async function EventLandingPage({
 
       <section className="py-20">
         <div className="container">
-          {event.locations.length > 0 && (
+          {event.locations?.length > 0 && (
             <div className="mb-20">
               <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
-                {event.status === "upcoming" ? "Sections" : "Host Cities"}
+                {event?.status === "upcoming" ? "Sections" : "Host Cities"}
               </p>
               <h2 className="mb-6 font-serif text-3xl font-bold text-[#152238]">
                 Browse this edition.
               </h2>
               <div className="grid gap-5 md:grid-cols-3">
-                {event.locations.map((location) => (
+                {event?.locations?.map((location) => (
                   <LocationCard
                     key={location.slug}
                     eventSlug={event.slug}
@@ -82,7 +82,7 @@ export default async function EventLandingPage({
             </div>
           )}
 
-          {event.plans.length > 0 && (
+          {event?.plans?.length > 0 && (
             <div>
               <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
                 Plans
@@ -91,7 +91,7 @@ export default async function EventLandingPage({
                 Choose your planner.
               </h2>
               <div className="grid gap-6 md:grid-cols-2">
-                {event.plans.map((plan) => (
+                {event?.plans?.map((plan) => (
                   <div key={plan.sku}>
                     <ProductCard
                       product={{

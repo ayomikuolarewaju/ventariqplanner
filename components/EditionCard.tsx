@@ -51,10 +51,10 @@ export default function EditionCard({
         </p>
         <div className="mb-5 flex flex-wrap gap-2">
           <span className="rounded-[20px] bg-[#F4F1EA] px-2.5 py-1 text-[11.5px] text-[#2A3E5C]">
-            {event.locations.length} sections
+            {event.locations?.length} sections
           </span>
           <span className="rounded-[20px] bg-[#F4F1EA] px-2.5 py-1 text-[11.5px] text-[#2A3E5C]">
-            {event.plans.length} plans
+            {event?.plans?.length} plans
           </span>
         </div>
         <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#152238]">
