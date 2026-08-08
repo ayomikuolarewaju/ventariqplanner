@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   const session = event.data.object as any;
-  const supabase = await createAdminClient();
+  const supabase = createAdminClient();
 
   try {
     // idempotency: Stripe retries webhooks, never process the same
@@ -98,6 +98,8 @@ export async function POST(req: Request) {
         currency: session.currency ?? "usd",
         payment_status: session.payment_status ?? "paid",
         fulfillment_status: fulfillmentStatus,
+        event_slug: metadata.event_slug || null,
+        location_slug: kind === "location_guide" ? metadata.location_slug || null : null,
       })
       .select("*")
       .single();
@@ -162,13 +164,22 @@ async function deliverLocationGuide(
 
   const pdfBuffer = await renderToBuffer(
     <CityGuideDocument
-      eyebrow={event?.eyebrow}
+      eyebrow={event.eyebrow}
       cityName={location.name}
       tagline={location.description}
       heroImage={location.image}
       services={services}
     />
   );
+
+  // store it -- keyed by order id, since checkout is guest-only now and
+  // there's no auth user id to key it by. This is what lets the
+  // checkout-success page offer a direct download link.
+  const storagePath = `${eventSlug}/${locationSlug}/${order.id}.pdf`;
+  await supabase.storage.from("guides").upload(storagePath, pdfBuffer, {
+    contentType: "application/pdf",
+    upsert: true,
+  });
 
   await resend.emails.send({
     from: process.env.FROM_EMAIL || "ComfortLifeUS <info@mail.comfortlifeus.com>",

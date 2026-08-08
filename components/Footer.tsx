@@ -74,6 +74,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/resend-guide" className="hover:text-white">
+                  Resend My Guide
+                </Link>
+              </li>
+              <li>
                 <a
                   href="https://stratxct.com"
                   className="hover:text-white"
