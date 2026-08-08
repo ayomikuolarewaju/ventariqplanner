@@ -3,11 +3,11 @@
 import PurchaseButton from "@/components/PurchaseButton";
 
 type PlanDetailProps = {
-  eyebrow: string;
-  title: string;
-  description: string;
-  sku: string;
-  features: string[];
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  sku?: string;
+  features?: string[];
 };
 
 export default function PlanDetailLayout({
@@ -40,7 +40,7 @@ export default function PlanDetailLayout({
               What&apos;s Included
             </p>
             <ul className="space-y-3">
-              {features.map((f) => (
+              {features?.map((f) => (
                 <li key={f} className="flex items-start gap-2 text-[14px] text-[#2A3E5C]">
                   <span className="mt-0.5 text-[#8C6423]">✓</span>
                   <span>{f}</span>

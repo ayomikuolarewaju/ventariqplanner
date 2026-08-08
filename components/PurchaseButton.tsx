@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function PurchaseButton({ sku }: { sku: string }) {
+export default function PurchaseButton({ sku }: { sku?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
