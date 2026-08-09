@@ -54,7 +54,7 @@ export default function Home() {
               {[
                 { num: "2", lbl: "Editions live for 2026" },
                 { num: "50+", lbl: "Pages per guide" },
-                { num: "6", lbl: "Confidence tags, every claim" },
+                { num: "4", lbl: "Confidence tags, every supported" },
               ].map((stat) => (
                 <div
                   key={stat.lbl}
@@ -124,13 +124,13 @@ export default function Home() {
         <div className="container">
           <div className="mb-13 max-w-[660px]">
             <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
-              Current Editions
+              Current Events
             </p>
             <h2 className="mb-3.5 font-serif text-[33px] font-bold text-[#152238]">
-              Two events. Two complete guides.
+              Two events. Two complete planners.
             </h2>
             <p className="text-base text-[#5A6472]">
-              Every Ventariq guide is a single flagship planner per event —
+              Every Ventariq planner is a single flagship guide per event —
               comprehensive rather than fragmented, so there&apos;s one
               clear thing to buy and one clear thing to trust.
             </p>
