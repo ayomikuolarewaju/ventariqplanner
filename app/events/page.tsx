@@ -39,7 +39,7 @@ export default async function EventsPage() {
           {past.length > 0 && (
             <div>
               <h2 className="mb-6 font-serif text-xl font-bold text-[#5A6472]">
-                Past Editions
+                Past Event
               </h2>
               <div className="grid gap-7 md:grid-cols-2">
                 {past.map((event, i) => (
