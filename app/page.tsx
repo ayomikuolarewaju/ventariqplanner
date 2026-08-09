@@ -35,7 +35,7 @@ export default async function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#0D1420]/70 via-[#0D1420]/85 to-[#0D1420]" />
 
         <div className="container relative z-10 grid items-center gap-14 md:grid-cols-[1.05fr_0.95fr]">
-          <div>
+          <div className="max-w-[650px] rounded-[10px] bg-[#880000]/70 px-6 py-10 md:px-10 md:py-14">
             <span className="mb-5 inline-flex items-center gap-2 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#B8863B]">
               <span className="h-[1.5px] w-[22px] bg-[#B8863B]" />
               Event Intelligence, Not Guesswork

@@ -72,7 +72,7 @@ export default function EventCard({ event }: { event: EventItem }) {
             {event.tagline}
           </p>
           <span className="mt-4 inline-flex items-center gap-1 font-mono text-xs tracking-widest text-[#E8002D] transition-transform group-hover:translate-x-1">
-            VIEW GUIDE →
+            VIEW PLANNER →
           </span>
         </div>
       </Link>
