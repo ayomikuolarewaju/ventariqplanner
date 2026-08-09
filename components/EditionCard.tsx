@@ -12,7 +12,7 @@ import type { EventItem } from "@/lib/events";
  */
 
 const GRADIENTS = [
-  "linear-gradient(155deg, #11263e, #0d1420 58%, #8C1C2B 165%)",
+  "linear-gradient(155deg, #11263e, #0d1420 58%, #8C1C2B 165% )",
   "linear-gradient(155deg, #101d31, #0d1420 55%, #8C6423 165%)",
 ];
 
@@ -31,11 +31,11 @@ export default function EditionCard({
       className="group overflow-hidden rounded-[11px] bg-white shadow-[0_18px_40px_-22px_rgba(21,34,56,0.35)] transition-all hover:-translate-y-1 hover:shadow-[0_26px_50px_-20px_rgba(21,34,56,0.4)]"
     >
       <div
-        className="relative flex h-[180px] flex-col justify-end overflow-hidden p-5.5 text-white"
-        style={{ backgroundImage: gradient }}
+        className="relative flex h-[180px] flex-col justify-end overflow-hidden p-5.5 text-white bg-[#880000]"
+        
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50" />
-        <span className="absolute right-4.5 top-4.5 z-10 rounded-[20px] border border-white/30 bg-white/[0.14] px-2.5 py-1 text-[11px] tracking-[0.03em]">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50 " />
+        <span className="absolute right-4.5 top-4.5 z-10 rounded-[20px] bg-[#880000] border border-white/30 bg-white/[0.14] px-2.5 py-1 text-[11px] tracking-[0.03em]">
           {event.status === "upcoming" ? "2026 Edition" : "Past Edition"}
         </span>
         <div className="relative z-10 mb-1.5 text-xs font-bold uppercase tracking-[0.08em] text-[#B8863B]">
@@ -58,7 +58,7 @@ export default function EditionCard({
           </span>
         </div>
         <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#152238]">
-          View the guide
+          View the planner
           <span className="transition-transform group-hover:translate-x-1">
             →
           </span>

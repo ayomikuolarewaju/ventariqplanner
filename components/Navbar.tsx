@@ -25,7 +25,7 @@ export default function Navbar() {
               Ventariq
             </strong>
             <small className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-[#8fa0b4]">
-              A StratX Solutions Company
+              A StratX Solutions Product
             </small>
           </span>
         </Link>
@@ -48,7 +48,7 @@ export default function Navbar() {
             href="/events"
             className="rounded-[5px] bg-[#B8863B] px-4.5 py-2.5 text-[13.5px] font-bold text-[#0D1420] transition-colors hover:bg-[#c99a4d]"
           >
-            Get a Guide
+            Get a Planner
           </Link>
         </div>
 

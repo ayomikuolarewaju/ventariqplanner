@@ -24,9 +24,9 @@ export default function Home() {
             </span>
 
             <h1 className="mb-5 font-serif text-4xl font-bold leading-[1.07] text-white md:text-[50px]">
-              Plan less.
+              Plan Less.
               <br />
-              <em className="not-italic text-[#B8863B]">Experience</em> more.
+              <em className="not-italic text-[#B8863B]">Experience More.</em> 
             </h1>
 
             <p className="mb-8 max-w-[480px] text-[17.5px] text-[#C9C2A8]">
@@ -70,9 +70,6 @@ export default function Home() {
           </div>
 
           <motion.div
-            initial={{ opacity: 0, y: 20, rotate: 0 }}
-            animate={{ opacity: 1, y: 0, rotate: 1.2 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden rounded-[10px] bg-white shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)]"
           >
             <div className="flex items-center justify-between bg-[#152238] px-5.5 py-4 font-serif text-sm text-white">
@@ -90,26 +87,32 @@ export default function Home() {
                 Ventariq guide looks like.
               </p>
 
-              <div className="mb-2.5 rounded-[3px] border-l-4 border-[#152238] bg-[#EAECF1] p-3 text-[12.8px] leading-[1.45]">
+              <div className="mb-2.5 text-black rounded-[3px] border-l-4 border-[#152238] bg-[#EAECF1] p-3 text-[12.8px] leading-[1.45]">
                 <b className="mr-1 text-[11px] tracking-[0.03em] text-[#152238]">
                   ✅ VERIFIED
                 </b>
                 Rush lines release unclaimed seats ~15–30 min before
                 showtime.
               </div>
-              <div className="mb-2.5 rounded-[3px] border-l-4 border-[#B8863B] bg-[#FBF4E6] p-3 text-[12.8px] leading-[1.45]">
+              <div className="mb-2.5 text-black rounded-[3px] border-l-4 border-[#B8863B] bg-[#FBF4E6] p-3 text-[12.8px] leading-[1.45]">
                 <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C6423]">
-                  💡 INSIGHT
+                  💡 INSIDER TIP
                 </b>
                 Discovery-section tickets offer the best odds-to-price
                 ratio.
               </div>
-              <div className="rounded-[3px] border-l-4 border-[#8C1C2B] bg-[#FBEAEC] p-3 text-[12.8px] leading-[1.45]">
+              <div className="mb-2.5 text-black rounded-[3px] border-l-4 border-[#8C1C2B] bg-[#FBEAEC] p-3 text-[12.8px] leading-[1.45]">
                 <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C1C2B]">
-                  ⚠ AVOID THIS
+                  ⚠ CAVEAT
                 </b>
                 Buying from anywhere but Ticketmaster.ca or your official
                 account.
+              </div>
+              <div className="mb-2.5 text-black rounded-[3px] border-l-4 border-[#8C1C6B] bg-[#FBE6E4] p-3 text-[12.8px] leading-[1.45]">
+                <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C1C2B]">
+                  ☢️ UNCONFIRMED
+                </b>
+                Could not independently confirm, verify before relying on it.
               </div>
             </div>
           </motion.div>
@@ -224,37 +227,27 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid gap-px overflow-hidden rounded-[10px] border border-[#D8D2C2] bg-[#D8D2C2] md:grid-cols-3">
+          <div className="grid gap-px overflow-hidden rounded-[10px] border border-[#D8D2C2] bg-[#D8D2C2] md:grid-cols-2">
             <DiffCell
               tag="✅ Verified"
               tagClass="bg-[#EAECF1] text-[#152238]"
-              text="Confirmed directly against an official source — the venue, the transit authority, the festival itself."
+              text="Rush lines release unclaimed seats ~15–30 min before showtime."
             />
             <DiffCell
-              tag="💡 Ventariq Insight"
+              tag="💡 Insider tip"
               tagClass="bg-[#FBF4E6] text-[#8C6423]"
-              text="Patterns we've synthesized across multiple reliable sources when no single official answer exists."
+              text="Discovery-section tickets offer the best odds-to-price ratio."
             />
             <DiffCell
-              tag="⏱ Time Saver"
+              tag="⏱ Caveat"
               tagClass="bg-[#EDF0F5] text-[#2A3E5C]"
-              text="A specific action that cuts waiting, confusion, or a wasted trip across town."
+              text="Buying from anywhere but Ticketmaster.ca or your official account."
             />
             <DiffCell
-              tag="💰 Money Saver"
+              tag="☢️ Unconfirmed"
               tagClass="bg-[#FBF0DE] text-[#8C6423]"
-              text="A concrete way to spend less without experiencing less."
-            />
-            <DiffCell
-              tag="⚠ Avoid This Mistake"
-              tagClass="bg-[#FBEAEC] text-[#8C1C2B]"
-              text="The specific, common error that costs first-timers real time or real money."
-            />
-            <DiffCell
-              tag="⚪ Not Yet Confirmed"
-              tagClass="bg-[#F0F0EE] text-[#5A6472]"
-              text="Where we looked and couldn't verify — said plainly, instead of guessed at."
-            />
+              text="Could not independently confirm, verify before relying on it."
+            /> 
           </div>
         </div>
       </section>
@@ -372,8 +365,8 @@ function EditionCard({
       className="group overflow-hidden rounded-[11px] bg-white shadow-[0_18px_40px_-22px_rgba(21,34,56,0.35)] transition-all hover:-translate-y-1 hover:shadow-[0_26px_50px_-20px_rgba(21,34,56,0.4)]"
     >
       <div
-        className="relative flex h-[180px] flex-col justify-end overflow-hidden p-5.5 text-white"
-        style={{ backgroundImage: gradient }}
+        className="relative flex h-[180px] flex-col justify-end overflow-hidden p-5.5 text-white bg-[#880000]"
+        
       >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50" />
         <span className="absolute right-4.5 top-4.5 z-10 rounded-[20px] border border-white/30 bg-white/[0.14] px-2.5 py-1 text-[11px] tracking-[0.03em]">
@@ -399,7 +392,7 @@ function EditionCard({
           ))}
         </div>
         <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#152238]">
-          View the guide
+          View the planner
           <span className="transition-transform group-hover:translate-x-1">
             →
           </span>
