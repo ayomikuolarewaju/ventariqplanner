@@ -11,7 +11,7 @@ export default function HeroExcerptCard() {
       className="relative z-10 overflow-hidden rounded-[10px] bg-white shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)]"
     >
       <div className="flex items-center justify-between bg-[#152238] px-5.5 py-4 font-serif text-sm text-white">
-        <span>Inside the TIFF Experience Planner</span>
+        <span className = "capitalize">insider every ventariq experience planner</span>
        
       </div>
       <div className="px-6 pb-6.5 pt-5.5">
