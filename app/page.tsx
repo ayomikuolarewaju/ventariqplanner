@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import HeroSlideshow from "@/components/HeroSlideshow";
+import HeroExcerptCard from "@/components/HeroExcerptCard";
 import EditionCard from "@/components/EditionCard";
 import { getEvents } from "@/lib/events";
 
@@ -86,7 +87,7 @@ export default async function Home() {
               ))}
             </div>
           </div>
-
+          <HeroExcerptCard />
         </div>
       </section>
 
