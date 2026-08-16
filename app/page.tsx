@@ -73,7 +73,7 @@ export default async function Home() {
               {[
                 { num: String(upcomingEvents.length || 2), lbl: "Events live for 2026" },
                 { num: "50+", lbl: "Pages per guide" },
-                { num: "4", lbl: "Confidence tags, every claims supported" },
+                { num: "6", lbl: "Confidence tags, every claims supported" },
               ].map((stat) => (
                 <div
                   key={stat.lbl}
@@ -202,14 +202,6 @@ export default async function Home() {
               description="Versioned revisions whenever ticket policy, pricing, or venue details shift"
               status="Ongoing"
               statusColor="bg-[#EDEEF1] text-[#2A3E5C]"
-            />
-            <DeskRow
-              icon="＋"
-              title="Kanet"
-              description="The next StratX product"
-              status="Coming Soon"
-              statusColor="bg-[#F3EEE2] text-[#8C6423]"
-              last
             />
           </div>
         </div>
