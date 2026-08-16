@@ -116,10 +116,10 @@ export default async function Home() {
             </p>
             <h2 className="mb-3.5 font-serif text-[33px] font-bold text-[#152238]">
               {upcomingEvents.length} event{upcomingEvents.length !== 1 ? "s" : ""}.{" "}
-              {upcomingEvents.length} complete guide{upcomingEvents.length !== 1 ? "s" : ""}.
+              {upcomingEvents.length} complete planner{upcomingEvents.length !== 1 ? "s" : ""}.
             </h2>
             <p className="text-base text-[#5A6472]">
-              Every Ventariq guide is a single flagship planner per event —
+              Every Ventariq planner is a single flagship planner per event —
               comprehensive rather than fragmented, so there&apos;s one
               clear thing to buy and one clear thing to trust.
             </p>
@@ -146,7 +146,7 @@ export default async function Home() {
                 Past Events
               </p>
               <h2 className="mb-3.5 font-serif text-[33px] font-bold text-[#152238]">
-                Concluded, kept for reference.
+                Concluded.
               </h2>
               <p className="text-base text-[#5A6472]">
                 These events have wrapped, but the guides remain
