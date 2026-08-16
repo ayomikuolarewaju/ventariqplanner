@@ -35,7 +35,7 @@ export default function EditionCard({
       >
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50" />
         <span className="absolute right-4.5 top-4.5 z-10 rounded-[20px] border border-white/30 bg-white/[0.14] px-2.5 py-1 text-[11px] tracking-[0.03em]">
-          {event.status === "upcoming" ? "2026 Edition" : "Past Edition"}
+          {event.status === "upcoming" ? "2026 Event" : "Past Event"}
         </span>
         <div className="relative z-10 mb-1.5 text-xs font-bold uppercase tracking-[0.08em] text-[#B8863B]">
           {event.sport}

@@ -112,7 +112,7 @@ export default async function Home() {
         <div className="container">
           <div className="mb-13 max-w-[660px]">
             <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
-              Current Editions
+              Current Events
             </p>
             <h2 className="mb-3.5 font-serif text-[33px] font-bold text-[#152238]">
               {upcomingEvents.length} event{upcomingEvents.length !== 1 ? "s" : ""}.{" "}
@@ -143,13 +143,13 @@ export default async function Home() {
           <div className="container">
             <div className="mb-13 max-w-[660px]">
               <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#5A6472]">
-                Past Editions
+                Past Events
               </p>
               <h2 className="mb-3.5 font-serif text-[33px] font-bold text-[#152238]">
                 Concluded, kept for reference.
               </h2>
               <p className="text-base text-[#5A6472]">
-                These editions have wrapped, but the guides remain
+                These events have wrapped, but the guides remain
                 available — useful if you&apos;re researching how we
                 cover an event before the next edition goes live.
               </p>
@@ -175,7 +175,7 @@ export default async function Home() {
               A living product, not a static download.
             </h2>
             <p className="text-base text-[#5A6472]">
-              Editions get real, versioned updates when time-sensitive
+              Events get real, versioned updates when time-sensitive
               details change — this is where we keep track of what&apos;s
               live, what&apos;s next, and what&apos;s being revised.
             </p>
