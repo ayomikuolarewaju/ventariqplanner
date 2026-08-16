@@ -173,7 +173,7 @@ export default async function Home() {
       </section>
 
       {/* THE VENTARIQ DIFFERENCE */}
-      <section id="difference" className="bg-[#F4F1EA] py-20">
+      {/* <section id="difference" className="bg-[#F4F1EA] py-20">
         <div className="container">
           <div className="mb-13 max-w-[660px]">
             <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
@@ -212,10 +212,10 @@ export default async function Home() {
             />
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* HOW WE WORK */}
-      <section id="how-we-work" className="py-20">
+      {/* <section id="how-we-work" className="py-20">
         <div className="container">
           <div className="mb-13 max-w-[660px]">
             <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
@@ -254,7 +254,7 @@ export default async function Home() {
             />
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* ABOUT STRIP */}
       <section id="about" className="bg-[#0D1420] py-16 text-white">

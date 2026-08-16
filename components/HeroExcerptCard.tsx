@@ -11,15 +11,14 @@ export default function HeroExcerptCard() {
       className="relative z-10 overflow-hidden rounded-[10px] bg-white shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)]"
     >
       <div className="flex items-center justify-between bg-[#152238] px-5.5 py-4 font-serif text-sm text-white">
-        <span className = "capitalize">inside every ventariq experience planner</span>
+        <span className = "capitalize">The Ventariq Difference - inside every Ventariq experience planner</span>
        
       </div>
       <div className="px-6 pb-6.5 pt-5.5">
-        <h4 className="mb-2.5 font-serif text-base text-[#152238]">
-          Event Intelligence
-        </h4>
+        
         <p className="mb-4 text-[13.5px] text-[#5A6472]">
-          Real excerpt, real labeling — this is what every information on Ventariq planner looks like.
+          Every claim, labeled by how sure we are.
+          Free blogs give you an answer. We give you an answer and tell you exactly how much to trust it — the same six-tag system runs through every guide we publish.
         </p>
 
         <div className="mb-2.5 rounded-[3px] border-l-4 border-[#152238] bg-[#EAECF1] p-3 text-[12.8px] leading-[1.45]">
