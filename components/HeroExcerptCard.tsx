@@ -25,27 +25,37 @@ export default function HeroExcerptCard() {
           <b className="mr-1 text-[11px] tracking-[0.03em] text-[#152238]">
             ✅ VERIFIED
           </b>
-          Rush lines release unclaimed seats ~15–30 min before showtime.
+          Confirmed via an official source or established primary reporting.
         </div>
         <div className="mb-2.5 rounded-[3px] border-l-4 border-[#B8863B] bg-[#FBF4E6] p-3 text-[12.8px] leading-[1.45]">
           <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C6423]">
-            💡 INSIDER TIP
+            💡 VENTARIQ INSIGHT 
           </b>
-          Discovery-section tickets offer the best odds-to-price ratio.
+          Ventariq's synthesis of patterns and practical advice from experienced attendees and across multiple reliable sources.
         </div>
         <div className="rounded-[3px] border-l-4 border-[#8C1C2B] bg-[#FBEAEC] p-3 text-[12.8px] leading-[1.45]">
           <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C1C2B]">
-            ☣️ CAVEAT 
+            ☣️ TIME SAVER  
           </b>
-          Buying from anywhere but Ticketmaster.ca or your official
-          account.
+          A specific action that reduces waiting, confusion, or unnecessary travel.
         </div>
         <div className="rounded-[3px] border-l-4 border-[#8C1C2B] bg-[#FBEAEC] p-3 text-[12.8px] leading-[1.45] mt-2.5">
           <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C1C2B]">
-            ❎ UNCONFIRMED
+            💰 MONEY SAVER
           </b>
-          Buying from anywhere but Ticketmaster.ca or your official
-          account.
+          A specific way to reduce cost without reducing the experience.
+        </div>
+        <div className="rounded-[3px] border-l-4 border-[#8C1C2B] bg-[#FBEAEC] p-3 text-[12.8px] leading-[1.45] mt-2.5">
+          <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C1C2B]">
+            ⚠ AVOID THIS MISTAKE
+          </b>
+          A specific way to reduce cost without reducing the experience.
+        </div>
+        <div className="rounded-[3px] border-l-4 border-[#8C1C2B] bg-[#FBEAEC] p-3 text-[12.8px] leading-[1.45] mt-2.5">
+          <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C1C2B]">
+            ⚪ NOT YET CONFIRMED 
+          </b>
+           Could not be independently verified — treat as a starting point and confirm before relying on it.
         </div>
       </div>
     </motion.div>
