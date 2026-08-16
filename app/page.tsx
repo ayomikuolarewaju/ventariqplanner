@@ -257,14 +257,8 @@ export default async function Home() {
         </div>
       </section> */}
 
-      <section id="difference" className="bg-[#F4F1EA] py-20">
-        <div>
-          
-        </div>
-      </section>
-
       {/* HOW WE WORK */}
-      <section id="how-we-work" className="py-20">
+      <section id="how-we-work" className="py-20 bg-[#F4F1EA]">
         <div className="container">
           <div className="mb-13 max-w-[660px]">
             <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
