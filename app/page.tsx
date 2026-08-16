@@ -16,6 +16,8 @@ const SPORT_ICONS: Record<string, string> = {
 
 export default async function Home() {
   const events = await getEvents();
+  const upcomingEvents = events.filter((e) => e.status === "upcoming");
+  const pastEvents = events.filter((e) => e.status === "past");
   const slides = events
     .filter((e) => !!e.heroImage)
     .map((e) => ({ src: e.heroImage as string, alt: `${e.name} Experience Planner` }));
@@ -24,8 +26,6 @@ export default async function Home() {
     <main>
       {/* HERO */}
       <section className="relative overflow-hidden bg-[#0D1420] py-28 pb-24 text-white md:min-h-[640px]">
-        <HeroSlideshow slides={slides} />
-
         <div
           className="absolute inset-0"
           style={{
@@ -71,7 +71,7 @@ export default async function Home() {
 
             <div className="flex flex-wrap">
               {[
-                { num: String(events.length || 2), lbl: "Events live for 2026" },
+                { num: String(upcomingEvents.length || 2), lbl: "Events live for 2026" },
                 { num: "50+", lbl: "Pages per guide" },
                 { num: "4", lbl: "Confidence tags, every claims supported" },
               ].map((stat) => (
@@ -91,6 +91,22 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* EDITION GALLERY -- the slideshow, moved out of the hero into its own section */}
+      {slides.length > 0 && (
+        <section className="relative h-[380px] overflow-hidden bg-[#0D1420] md:h-[460px]">
+          <HeroSlideshow slides={slides} />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0D1420]/85 via-transparent to-transparent" />
+          <div className="container relative z-10 flex h-full flex-col justify-end pb-10 text-white">
+            <p className="text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#B8863B]">
+              Now Live
+            </p>
+            <h2 className="mt-2 font-serif text-3xl font-bold">
+              See what&apos;s inside each edition.
+            </h2>
+          </div>
+        </section>
+      )}
+
       {/* EDITIONS */}
       <section id="editions" className="py-20">
         <div className="container">
@@ -99,8 +115,8 @@ export default async function Home() {
               Current Editions
             </p>
             <h2 className="mb-3.5 font-serif text-[33px] font-bold text-[#152238]">
-              {events.length} event{events.length !== 1 ? "s" : ""}.{" "}
-              {events.length} complete guide{events.length !== 1 ? "s" : ""}.
+              {upcomingEvents.length} event{upcomingEvents.length !== 1 ? "s" : ""}.{" "}
+              {upcomingEvents.length} complete guide{upcomingEvents.length !== 1 ? "s" : ""}.
             </h2>
             <p className="text-base text-[#5A6472]">
               Every Ventariq guide is a single flagship planner per event —
@@ -109,9 +125,9 @@ export default async function Home() {
             </p>
           </div>
 
-          {events.length > 0 ? (
+          {upcomingEvents.length > 0 ? (
             <div className="grid gap-7 md:grid-cols-2">
-              {events.map((event, i) => (
+              {upcomingEvents.map((event, i) => (
                 <EditionCard key={event.slug} event={event} gradientIndex={i} />
               ))}
             </div>
@@ -120,6 +136,33 @@ export default async function Home() {
           )}
         </div>
       </section>
+
+      {/* PAST EDITIONS */}
+      {pastEvents.length > 0 && (
+        <section id="past-editions" className="bg-[#F4F1EA] py-20">
+          <div className="container">
+            <div className="mb-13 max-w-[660px]">
+              <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#5A6472]">
+                Past Editions
+              </p>
+              <h2 className="mb-3.5 font-serif text-[33px] font-bold text-[#152238]">
+                Concluded, kept for reference.
+              </h2>
+              <p className="text-base text-[#5A6472]">
+                These editions have wrapped, but the guides remain
+                available — useful if you&apos;re researching how we
+                cover an event before the next edition goes live.
+              </p>
+            </div>
+
+            <div className="grid gap-7 md:grid-cols-2">
+              {pastEvents.map((event, i) => (
+                <EditionCard key={event.slug} event={event} gradientIndex={i} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* INTELLIGENCE DESK */}
       <section id="desk" className="bg-[#FCFBF8] py-20">
@@ -213,6 +256,12 @@ export default async function Home() {
           </div>
         </div>
       </section> */}
+
+      <section id="difference" className="bg-[#F4F1EA] py-20">
+        <div>
+          
+        </div>
+      </section>
 
       {/* HOW WE WORK */}
       {/* <section id="how-we-work" className="py-20">

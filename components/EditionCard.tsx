@@ -12,7 +12,7 @@ import type { EventItem } from "@/lib/events";
  */
 
 const GRADIENTS = [
-  "linear-gradient(155deg, #11263e, #0d1420 58%, #8C1C2B 165% )",
+  "linear-gradient(155deg, #11263e, #0d1420 58%, #8C1C2B 165%)",
   "linear-gradient(155deg, #101d31, #0d1420 55%, #8C6423 165%)",
 ];
 
@@ -32,10 +32,9 @@ export default function EditionCard({
     >
       <div
         className="relative flex h-[180px] flex-col justify-end overflow-hidden p-5.5 text-white bg-[#880000]"
-        
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50 " />
-        <span className="absolute right-4.5 top-4.5 z-10 rounded-[20px] bg-[#880000] border border-white/30 bg-white/[0.14] px-2.5 py-1 text-[11px] tracking-[0.03em]">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50" />
+        <span className="absolute right-4.5 top-4.5 z-10 rounded-[20px] border border-white/30 bg-white/[0.14] px-2.5 py-1 text-[11px] tracking-[0.03em]">
           {event.status === "upcoming" ? "2026 Edition" : "Past Edition"}
         </span>
         <div className="relative z-10 mb-1.5 text-xs font-bold uppercase tracking-[0.08em] text-[#B8863B]">
@@ -46,19 +45,11 @@ export default function EditionCard({
         </h3>
       </div>
       <div className="px-6.5 pb-7 pt-6">
-        <p className="mb-4.5 text-[14.5px] text-[#5A6472]">
+        <p className="mb-5 text-[14.5px] text-[#5A6472]">
           {event.description}
         </p>
-        <div className="mb-5 flex flex-wrap gap-2">
-          <span className="rounded-[20px] bg-[#F4F1EA] px-2.5 py-1 text-[11.5px] text-[#2A3E5C]">
-            {event.locations?.length} sections
-          </span>
-          <span className="rounded-[20px] bg-[#F4F1EA] px-2.5 py-1 text-[11.5px] text-[#2A3E5C]">
-            {event?.plans?.length} plans
-          </span>
-        </div>
         <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#152238]">
-          View the planner
+          View the guide
           <span className="transition-transform group-hover:translate-x-1">
             →
           </span>
