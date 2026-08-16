@@ -75,7 +75,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/resend-guide" className="hover:text-white">
-                  Resend My Guide
+                  Resend My Planner
                 </Link>
               </li>
               <li>
@@ -85,7 +85,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  stratxct.com
+                  info@stratxct.com
                 </a>
               </li>
             </ul>

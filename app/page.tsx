@@ -101,7 +101,7 @@ export default async function Home() {
               Now Live
             </p>
             <h2 className="mt-2 font-serif text-3xl font-bold">
-              See what&apos;s inside each edition.
+              See what&apos;s inside each events.
             </h2>
           </div>
         </section>
@@ -132,7 +132,7 @@ export default async function Home() {
               ))}
             </div>
           ) : (
-            <p className="text-[#5A6472]">No editions published yet.</p>
+            <p className="text-[#5A6472]">No events published yet.</p>
           )}
         </div>
       </section>
@@ -299,7 +299,7 @@ export default async function Home() {
               🛡 A StratX Solutions LLC Company
             </span>
             <h2 className="mb-4 font-serif text-[27px] font-bold text-white">
-              Ventariq is built by StratX Solutions — a Connecticut-based
+              Ventariq is built by StratX Solutions — a USA-based
               company built around one idea.
             </h2>
             <p className="mb-5 text-[15px] text-[#B7BEC9]">
@@ -316,7 +316,7 @@ export default async function Home() {
             </Link>
           </div>
 
-          <div className="rounded-[10px] border border-dashed border-white/28 bg-white/[0.03] p-5.5">
+          {/* <div className="rounded-[10px] border border-dashed border-white/28 bg-white/[0.03] p-5.5">
             <div className="mb-3.5 flex items-center justify-between">
               <span className="font-serif text-sm text-[#9AA3B2]">
                 What&apos;s Next
@@ -332,7 +332,7 @@ export default async function Home() {
               StratX&apos;s next product is in development. Details to
               follow as it gets closer to launch.
             </p>
-          </div>
+          </div> */}
         </div>
       </section>
     </main>
