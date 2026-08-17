@@ -14,7 +14,7 @@ export default function HeroExcerptCard() {
         <span className = "capitalize">The Ventariq Difference - inside every Ventariq experience planner</span>
        
       </div>
-      <div className="px-6 pb-6.5 pt-5.5">
+      <div className="px-6 pb-6.5 pt-5.5 text-black">
         
         <p className="mb-4 text-[13.5px] text-[#5A6472]">
           Every claim, labeled by how sure we are.

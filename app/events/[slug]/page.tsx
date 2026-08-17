@@ -82,7 +82,7 @@ export default async function EventLandingPage({
             </div>
           )}
 
-          {event.plans && event.plans.length > 0 && (
+          {/* {event.plans && event.plans.length > 0 && (
             <div>
               <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
                 Plans
@@ -112,7 +112,7 @@ export default async function EventLandingPage({
                 ))}
               </div>
             </div>
-          )}
+          )} */}
         </div>
       </section>
     </main>

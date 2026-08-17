@@ -113,10 +113,16 @@ export default function ContactPage() {
               <div>
                 <p className="font-bold text-[#152238]">Email</p>
                 <a
-                  href="mailto:hello@ventariq.com"
-                  className="text-[14px] text-[#5A6472] hover:text-[#152238]"
+                  href="mailto:info@stratxct.com"
+                  className="text-[14px] text-[#5A6472] hover:text-[#152238] block"
                 >
-                  hello@ventariq.com
+                   info@stratxct.com 
+                </a>
+                 <a
+                  href="mailto:support@stratxct.com"
+                  className="text-[14px] text-[#5A6472] hover:text-[#152238] block"
+                >
+                   support@stratxct.com 
                 </a>
               </div>
 
@@ -135,7 +141,7 @@ export default function ContactPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  stratxct.com
+                  StratX Solutions LLC
                 </a>
               </div>
             </div>
