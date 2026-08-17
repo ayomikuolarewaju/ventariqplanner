@@ -61,12 +61,6 @@ export default async function Home() {
               >
                 Browse Current Editions
               </Link>
-              <Link
-                href="#difference"
-                className="rounded-[5px] border border-white/28 px-6.5 py-3.5 text-[15px] font-semibold text-white transition-colors hover:border-[#B8863B]"
-              >
-                See How We Verify
-              </Link>
             </div>
 
             <div className="flex flex-wrap">
