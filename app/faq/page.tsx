@@ -10,31 +10,27 @@ const FAQS = [
   },
   {
     q: "How is this different from a free travel blog?",
-    a: "Every claim in a Ventariq guide is labeled by how confident we actually are — Verified, Insight, Time Saver, Money Saver, Avoid This Mistake, or Not Yet Confirmed. Free blogs give you an answer; we give you an answer and tell you exactly how much to trust it.",
+    a: "Every claim in a Ventariq guide is labeled by how confident we actually are — Verified, Ventariq Insight, Time Saver, Money Saver, Avoid This Mistake, or Not Yet Confirmed. Free blogs give you an answer; we give you an answer and tell you exactly how much to trust it.",
   },
   {
     q: "How do I get my guide after I pay?",
-    a: "Immediately after payment, you'll land on a page with a direct download link, and a copy is emailed to you as backup. No account or login is required to buy or download.",
+    a: "Immediately after payment, you'll receive an instant delivery of the planner. No account or login is required to buy or download.",
   },
   {
-    q: "I lost my download link. What now?",
-    a: "Use the \"Resend My Guide\" form (linked in the footer) with the email you used at checkout, and we'll send fresh download links to any guides on file for that address.",
-  },
-  {
-    q: "What if I bought a personalized plan, not a city/venue guide?",
-    a: "Personalized plans (like a Custom Match-Day Plan) need a few trip details first. After payment, we email a short intake form — once submitted, your plan is prepared and delivered by email.",
+    q: "I lost my planner. What now?",
+    a: "Use the \"Resend My Planner\" form (linked in the footer) with the email you used at checkout, and we'll send fresh planner  to that email address.",
   },
   {
     q: "Can I buy for a group?",
     a: "Yes — for larger groups or bulk orders, reach out through the Contact page rather than purchasing individually, and we'll help coordinate a quote-based arrangement.",
   },
   {
-    q: "Do guides get updated after I buy?",
-    a: "Yes. Editions are versioned, and we revise them when time-sensitive details change — ticket policy, pricing, or venue logistics. Check the Intelligence Desk on the homepage for what's currently live or being revised.",
+    q: "Do planners get updated after I buy?",
+    a: "Yes. we provide you with QRCode to monitor time sensitive changes — ticket policy, pricing, or venue logistics, as events progress."
   },
   {
     q: "What's your refund policy?",
-    a: "Since guides are delivered instantly as digital downloads, all sales are final once the guide has been delivered. If something's genuinely wrong with your order, contact us and we'll make it right.",
+    a: "Since planners are delivered instantly, all sales are final once the planner has been delivered. If something's genuinely wrong with your order, contact us and we'll make it right.",
   },
 ];
 
