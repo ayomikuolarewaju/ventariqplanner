@@ -166,7 +166,7 @@ export default async function Home() {
               Event Intelligence Desk
             </p>
             <h2 className="mb-3.5 font-serif text-[33px] font-bold text-[#152238]">
-              A living product, not a static download.
+              A living product, not a just static download.
             </h2>
             <p className="text-base text-[#5A6472]">
               Events get real, versioned updates when time-sensitive
@@ -192,7 +192,7 @@ export default async function Home() {
             ))}
             <DeskRow
               icon="↻"
-              title="Event updates"
+              title="Real-Time Event updates"
               description="Versioned revisions whenever ticket policy, pricing, or venue details shift"
               status="Ongoing"
               statusColor="bg-[#EDEEF1] text-[#2A3E5C]"
