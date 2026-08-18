@@ -64,12 +64,6 @@ export default async function EventLandingPage({
         <div className="container">
           {event.locations && event.locations.length > 0 && (
             <div className="mb-20">
-              <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
-                {event.status === "upcoming" ? "Sections" : "Host Cities"}
-              </p>
-              <h2 className="mb-6 font-serif text-3xl font-bold text-[#152238]">
-                Browse this edition.
-              </h2>
               <div className="grid gap-5 md:grid-cols-3">
                 {event.locations.map((location) => (
                   <LocationCard

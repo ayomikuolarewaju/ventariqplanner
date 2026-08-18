@@ -38,7 +38,7 @@ export default function PurchaseButton({ sku }: { sku?: string }) {
         disabled={loading}
         className="rounded-[5px] bg-[#B8863B] px-6 py-3 text-[15px] font-bold text-[#0D1420] transition-colors hover:bg-[#c99a4d] disabled:opacity-50"
       >
-        {loading ? "…" : "Get This Guide"}
+        {loading ? "…" : "Buy My Planner"}
       </button>
 
       {error && <p className="mt-2 text-sm text-[#8C1C2B]">{error}</p>}
