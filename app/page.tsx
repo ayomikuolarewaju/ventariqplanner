@@ -193,7 +193,6 @@ export default async function Home() {
             <DeskRow
               icon="↻"
               title="Real-Time Event updates"
-              description="Versioned revisions whenever ticket policy, pricing, or venue details shift"
               status="Ongoing"
               statusColor="bg-[#EDEEF1] text-[#2A3E5C]"
             />
@@ -343,7 +342,7 @@ function DeskRow({
 }: {
   icon: string;
   title: string;
-  description: string;
+  description?: string;
   status: string;
   statusColor: string;
   last?: boolean;
