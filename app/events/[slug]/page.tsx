@@ -58,9 +58,6 @@ export default async function EventLandingPage({
             </span>
           )}
         </div>
-      </section>
-
-      <section className="py-20">
         <div className="container">
           {event.locations && event.locations.length > 0 && (
             <div className="mb-20">
@@ -75,38 +72,6 @@ export default async function EventLandingPage({
               </div>
             </div>
           )}
-
-          {/* {event.plans && event.plans.length > 0 && (
-            <div>
-              <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
-                Plans
-              </p>
-              <h2 className="mb-6 font-serif text-3xl font-bold text-[#152238]">
-                Choose your planner.
-              </h2>
-              <div className="grid gap-6 md:grid-cols-2">
-                {event.plans.map((plan) => (
-                  <div key={plan.sku}>
-                    <ProductCard
-                      product={{
-                        sku: plan.sku,
-                        name: plan.name,
-                        description: plan.description,
-                        features: plan.features,
-                        price: plan.price,
-                      }}
-                    />
-                    <Link
-                      href={`/events/${event.slug}/${plan.sku}`}
-                      className="mt-3 inline-block text-[13px] font-semibold text-[#5A6472] hover:text-[#152238]"
-                    >
-                      View full details →
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )} */}
         </div>
       </section>
     </main>
