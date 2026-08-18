@@ -42,7 +42,7 @@ export default async function EventLandingPage({
   return (
     <main>
       <section className="bg-[#0D1420] py-20 text-white">
-        <div className="container">
+        <div className="container mb-12">
           <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#B8863B]">
             {event.eyebrow}
           </p>
