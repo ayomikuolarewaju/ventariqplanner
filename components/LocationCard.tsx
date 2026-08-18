@@ -13,9 +13,9 @@ export default function LocationCard({
   return (
     <Link
       href={`/events/${eventSlug}/locations/${location.slug}`}
-      className="group block rounded-[11px] border border-[#D8D2C2] bg-white p-6 transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(21,34,56,0.35)]"
+      className="group block rounded-[11px] border border-[#D8D2C2] bg-white p-3 transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(21,34,56,0.35)]"
     >
-      <div className="flex flex-col items-start justify-start mt-5">
+      <div className="flex flex-col items-start justify-start">
         <p className="font-serif text-[17px] font-bold text-[#152238]">
           {location.name}
         </p>

@@ -41,7 +41,7 @@ export default async function EventLandingPage({
 
   return (
     <main>
-      <section className="bg-[#0D1420] py-20 text-white">
+      <section className="bg-[#0D1420] py-20 text-white flex flex-col gap-5 md:gap-10">
         <div className="container ">
           <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#B8863B]">
             {event.eyebrow}
@@ -58,7 +58,7 @@ export default async function EventLandingPage({
             </span>
           )}
         </div>
-        <div className="container mt-5">
+        <div className="container">
           {event.locations && event.locations.length > 0 && (
             <div >
               <div className="grid gap-5 md:grid-cols-3">
