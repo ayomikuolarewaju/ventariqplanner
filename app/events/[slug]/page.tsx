@@ -58,7 +58,7 @@ export default async function EventLandingPage({
             </span>
           )}
         </div>
-        <div className="container">
+        <div className="container mt-12 flex flex-col gap-5 md:flex-row md:gap-8">
           {event.locations && event.locations.length > 0 && (
             <div className="mb-20">
               <div className="grid gap-5 md:grid-cols-3">
