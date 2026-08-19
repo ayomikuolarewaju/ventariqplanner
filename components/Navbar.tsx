@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import venlogo from "@/public/logo/venlogo.jpeg";
+import Image from "next/image";
 
 const LINKS = [
   { href: "/events", label: "Current Events" },
@@ -15,18 +17,16 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#B8863B]/35 bg-[#152238]">
       <nav className="container flex items-center justify-between py-3.5">
-        <Link href="/" className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[#B8863B] font-serif text-[17px] font-bold text-[#0D1420]">
-            V
-          </span>
-          <span className="flex flex-col leading-[1.05]">
-            <strong className="font-serif text-[20px] font-bold tracking-wide text-white">
-              Ventariq
-            </strong>
-            <small className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-[#8fa0b4]">
-              A StratX Solutions Product
-            </small>
-          </span>
+        <Link href="/" className="flex flex-col items-start gap-2.5">
+          <Image
+            src={venlogo}
+            alt="Ventariq Logo"
+            width={100}
+            height={100}
+          />
+          <small className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-[#8fa0b4] block">
+            A StratX Solutions Product
+          </small>
         </Link>
 
         <div

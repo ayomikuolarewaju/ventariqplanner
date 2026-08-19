@@ -1,6 +1,9 @@
 // components/Footer.tsx
 
 import Link from "next/link";
+import venlogo from "@/public/logo/venlogo.jpeg";
+import Image from "next/image";
+
 
 export default function Footer() {
   return (
@@ -9,12 +12,15 @@ export default function Footer() {
         <div className="mb-10 grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <div className="mb-3.5 flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-[7px] bg-[#B8863B] font-serif text-[17px] font-bold text-[#0D1420]">
-                V
-              </span>
-              <strong className="font-serif text-[19px] font-bold text-white">
-                Ventariq
-              </strong>
+              <Image
+                src={venlogo}
+                alt="Ventariq Logo"
+                width={100}
+                height={100}
+              />
+              <small className="mt-0.5 text-[10px] uppercase tracking-[0.1em] text-[#8fa0b4] block">
+                A StratX Solutions Product
+              </small>
             </div>
             <p className="max-w-[280px] text-[#8D95A3]">
               Plan Less. Experience More. Complete Experience Planners for

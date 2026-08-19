@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ChatWidget from "@/components/ChatWidget";
 
 
 const inter = Inter({
@@ -59,7 +60,7 @@ export default function RootLayout({
         <Navbar />
         {children}
         <Footer />
-      
+      <ChatWidget />
       </body>
     </html>
   );
