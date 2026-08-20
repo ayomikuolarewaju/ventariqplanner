@@ -92,8 +92,8 @@ export default function ChatWidget() {
               <Image
                 src="/logo/venlogo.jpeg"
                 alt="Ventariq Logo"
-                width={28}
-                height={28}
+                width={46}
+                height={46}
               />
               <span className="font-serif text-[15px] font-bold text-white">
                 Ventariq Assistant
