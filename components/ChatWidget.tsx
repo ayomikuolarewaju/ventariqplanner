@@ -1,9 +1,62 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import Link from "next/link";
 
 type Message = { role: "user" | "assistant"; content: string };
+
+/**
+ * Parses simple `[label](url)` markdown links out of message text and
+ * renders them as real clickable links -- the system prompt is
+ * instructed to only ever use this exact link format, so a full
+ * markdown parser would be overkill here.
+ */
+function renderMessageContent(content: string) {
+  const parts: (string | React.ReactElement)[] = [];
+  const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let key = 0;
+
+  while ((match = linkPattern.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index));
+    }
+
+    const [, label, url] = match;
+    const isInternal = url.startsWith("/");
+
+    parts.push(
+      isInternal ? (
+        <Link
+          key={key++}
+          href={url}
+          className="font-semibold text-[#8C6423] underline underline-offset-2 hover:text-[#152238]"
+        >
+          {label}
+        </Link>
+      ) : (
+        <a
+          key={key++}
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="font-semibold text-[#8C6423] underline underline-offset-2 hover:text-[#152238]"
+        >
+          {label}
+        </a>
+      )
+    );
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex));
+  }
+
+  return parts;
+}
 
 const GREETING: Message = {
   role: "assistant",
@@ -102,13 +155,13 @@ export default function ChatWidget() {
         ...m,
         {
           role: "assistant",
-          content: res.ok ? data.message : "Sorry, something went wrong. Try again, or visit /contact.",
+          content: res.ok ? data.message : "Sorry, something went wrong. Try again, or visit [our contact page](/contact).",
         },
       ]);
     } catch {
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: "Sorry, something went wrong. Try again, or visit /contact." },
+        { role: "assistant", content: "Sorry, something went wrong. Try again, or visit [our contact page](/contact)." },
       ]);
     } finally {
       setLoading(false);
@@ -148,7 +201,7 @@ export default function ChatWidget() {
       setLeadStatus("idle");
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: "Sorry, that didn't go through. Try again, or email us at hello@ventariq.com." },
+        { role: "assistant", content: "Sorry, that didn't go through. Try again, or email us at [hello@ventariq.com](mailto:hello@ventariq.com)." },
       ]);
     }
   }
@@ -164,12 +217,9 @@ export default function ChatWidget() {
         <div className="mb-3 flex h-[520px] w-[340px] flex-col overflow-hidden rounded-[12px] border border-[#D8D2C2] bg-white shadow-[0_20px_50px_-15px_rgba(13,20,32,0.35)] sm:w-[380px]">
           <div className="flex items-center justify-between bg-[#152238] px-4 py-3.5">
             <div className="flex items-center gap-2">
-              <Image
-                src="/logo/venlogo.jpeg"
-                alt="Ventariq Logo"
-                width={46}
-                height={46}
-              />
+              <span className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[#B8863B] font-serif text-sm font-bold text-[#0D1420]">
+                V
+              </span>
               <span className="font-serif text-[15px] font-bold text-white">
                 Ventariq Assistant
               </span>
@@ -193,7 +243,7 @@ export default function ChatWidget() {
                     : "bg-white text-[#152238] shadow-sm"
                 }`}
               >
-                {m.content}
+                {renderMessageContent(m.content)}
               </div>
             ))}
             {loading && (
