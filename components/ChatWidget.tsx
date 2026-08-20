@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -11,12 +11,29 @@ const GREETING: Message = {
     "Hi! I'm the Ventariq assistant. Ask me about an upcoming edition, or tell me about your trip and I'll help you pick the right guide.",
 };
 
+const HANDOFF_MESSAGE: Message = {
+  role: "assistant",
+  content:
+    "It sounds like this might need a closer look from our support team. Want to leave your contact info below? We'll reach out personally.",
+};
+
+const REPLIES_BEFORE_HANDOFF = 3;
+
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [pulse, setPulse] = useState(false);
+
+  const [showLeadForm, setShowLeadForm] = useState(false);
+  const [leadDismissed, setLeadDismissed] = useState(false);
+  const [leadName, setLeadName] = useState("");
+  const [leadEmail, setLeadEmail] = useState("");
+  const [leadPhone, setLeadPhone] = useState("");
+  const [leadStatus, setLeadStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const handoffTriggered = useRef(false);
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Proactively open once per browser session, a few seconds after the
@@ -46,7 +63,22 @@ export default function ChatWidget() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, showLeadForm]);
+
+  // After a few real answers, offer a human handoff -- triggers once
+  // per conversation, not on every message after the threshold.
+  useEffect(() => {
+    const assistantReplies = messages.filter((m) => m.role === "assistant").length - 1; // exclude greeting
+    if (
+      assistantReplies >= REPLIES_BEFORE_HANDOFF &&
+      !handoffTriggered.current &&
+      !leadDismissed
+    ) {
+      handoffTriggered.current = true;
+      setMessages((m) => [...m, HANDOFF_MESSAGE]);
+      setShowLeadForm(true);
+    }
+  }, [messages, leadDismissed]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -83,10 +115,53 @@ export default function ChatWidget() {
     }
   }
 
+  async function handleLeadSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!leadEmail.trim()) return;
+
+    setLeadStatus("sending");
+
+    try {
+      const res = await fetch("/api/chat/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: leadName,
+          email: leadEmail,
+          phone: leadPhone,
+          conversation: messages,
+        }),
+      });
+
+      if (!res.ok) throw new Error("failed");
+
+      setLeadStatus("sent");
+      setShowLeadForm(false);
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          content: `Thanks${leadName ? `, ${leadName}` : ""}! Our team will reach out to ${leadEmail} soon.`,
+        },
+      ]);
+    } catch {
+      setLeadStatus("idle");
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: "Sorry, that didn't go through. Try again, or email us at hello@ventariq.com." },
+      ]);
+    }
+  }
+
+  function dismissLeadForm() {
+    setShowLeadForm(false);
+    setLeadDismissed(true);
+  }
+
   return (
     <div className="fixed bottom-3 right-5 z-50">
       {open && (
-        <div className="mb-3 flex h-[480px] w-[340px] flex-col overflow-hidden rounded-[12px] border border-[#D8D2C2] bg-white shadow-[0_20px_50px_-15px_rgba(13,20,32,0.35)] sm:w-[380px]">
+        <div className="mb-3 flex h-[520px] w-[340px] flex-col overflow-hidden rounded-[12px] border border-[#D8D2C2] bg-white shadow-[0_20px_50px_-15px_rgba(13,20,32,0.35)] sm:w-[380px]">
           <div className="flex items-center justify-between bg-[#152238] px-4 py-3.5">
             <div className="flex items-center gap-2">
               <Image
@@ -125,6 +200,56 @@ export default function ChatWidget() {
               <div className="max-w-[85%] rounded-[9px] bg-white px-3.5 py-2.5 text-[13.5px] text-[#5A6472] shadow-sm">
                 …
               </div>
+            )}
+
+            {showLeadForm && (
+              <form
+                onSubmit={handleLeadSubmit}
+                className="rounded-[9px] border border-[#D8D2C2] bg-white p-3.5 shadow-sm"
+              >
+                <p className="mb-2.5 text-[11px] font-bold uppercase tracking-widest text-[#8C6423]">
+                  Talk to Our Team
+                </p>
+                <div className="space-y-2">
+                  <input
+                    value={leadName}
+                    onChange={(e) => setLeadName(e.target.value)}
+                    placeholder="Name"
+                    className="w-full rounded-[5px] border border-[#D8D2C2] px-2.5 py-2 text-[13px] text-[#152238] outline-none focus:border-[#B8863B]"
+                  />
+                  <input
+                    type="email"
+                    required
+                    value={leadEmail}
+                    onChange={(e) => setLeadEmail(e.target.value)}
+                    placeholder="Email *"
+                    className="w-full rounded-[5px] border border-[#D8D2C2] px-2.5 py-2 text-[13px] text-[#152238] outline-none focus:border-[#B8863B]"
+                  />
+                  <input
+                    type="tel"
+                    value={leadPhone}
+                    onChange={(e) => setLeadPhone(e.target.value)}
+                    placeholder="Phone (optional)"
+                    className="w-full rounded-[5px] border border-[#D8D2C2] px-2.5 py-2 text-[13px] text-[#152238] outline-none focus:border-[#B8863B]"
+                  />
+                </div>
+                <div className="mt-2.5 flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={leadStatus === "sending"}
+                    className="flex-1 rounded-[5px] bg-[#B8863B] px-3 py-2 text-[12.5px] font-bold text-[#0D1420] disabled:opacity-50"
+                  >
+                    {leadStatus === "sending" ? "Sending…" : "Send My Info"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={dismissLeadForm}
+                    className="px-3 py-2 text-[12.5px] text-[#5A6472] hover:text-[#152238]"
+                  >
+                    No thanks
+                  </button>
+                </div>
+              </form>
             )}
           </div>
 
