@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 type Message = { role: "user" | "assistant"; content: string };
@@ -15,7 +16,33 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([GREETING]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pulse, setPulse] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Proactively open once per browser session, a few seconds after the
+  // person arrives -- but never if they've already opened or dismissed
+  // it this session, so it's a nudge, not a nag.
+  useEffect(() => {
+    const alreadyEngaged = sessionStorage.getItem("ventariq-chat-engaged");
+    if (alreadyEngaged) return;
+
+    const pulseTimer = setTimeout(() => setPulse(true), 4000);
+    const openTimer = setTimeout(() => {
+      setOpen(true);
+      sessionStorage.setItem("ventariq-chat-engaged", "1");
+    }, 8000);
+
+    return () => {
+      clearTimeout(pulseTimer);
+      clearTimeout(openTimer);
+    };
+  }, []);
+
+  function handleToggle() {
+    sessionStorage.setItem("ventariq-chat-engaged", "1");
+    setPulse(false);
+    setOpen((v) => !v);
+  }
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -62,15 +89,18 @@ export default function ChatWidget() {
         <div className="mb-3 flex h-[480px] w-[340px] flex-col overflow-hidden rounded-[12px] border border-[#D8D2C2] bg-white shadow-[0_20px_50px_-15px_rgba(13,20,32,0.35)] sm:w-[380px]">
           <div className="flex items-center justify-between bg-[#152238] px-4 py-3.5">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[#B8863B] font-serif text-sm font-bold text-[#0D1420]">
-                V
-              </span>
+              <Image
+                src="/ventariq-logo.png"
+                alt="Ventariq Logo"
+                width={28}
+                height={28}
+              />
               <span className="font-serif text-[15px] font-bold text-white">
                 Ventariq Assistant
               </span>
             </div>
             <button
-              onClick={() => setOpen(false)}
+              onClick={handleToggle}
               aria-label="Close chat"
               className="text-lg text-white/60 hover:text-white"
             >
@@ -117,11 +147,17 @@ export default function ChatWidget() {
       )}
 
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggle}
         aria-label={open ? "Close chat" : "Open chat"}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-[#B8863B] text-2xl text-[#0D1420] shadow-[0_10px_25px_-8px_rgba(184,134,59,0.6)] transition-transform hover:scale-105"
+        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#B8863B] text-2xl text-[#0D1420] shadow-[0_10px_25px_-8px_rgba(184,134,59,0.6)] transition-transform hover:scale-105"
       >
         {open ? "✕" : "💬"}
+        {pulse && !open && (
+          <span className="absolute -right-1 -top-1 flex h-4 w-4">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#8C1C2B] opacity-75" />
+            <span className="relative inline-flex h-4 w-4 rounded-full bg-[#8C1C2B]" />
+          </span>
+        )}
       </button>
     </div>
   );
