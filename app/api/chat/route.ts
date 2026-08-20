@@ -11,6 +11,8 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
+const link = (text: string, url: string) => `[${text}](${url})`;
+
 const MODEL = "openai/gpt-oss-20b";
 
 const FAQ_TEXT = `
@@ -24,13 +26,13 @@ Q: How do I get my guide after paying?
 A: Immediately after payment, you'll receive an instant delivery of the planner. No account or login is required to buy or download.
 
 Q: I lost my download link.
-A: Use "Resend My Guide" at /resend-guide with the email used at checkout.
+A: Use "Resend My Guide" at ${link("resend-guide", "/resend-guide")} with the email used at checkout.
 
 Q: What about personalized plans (not a location guide)?
 A: We email a short intake form first, then prepare and deliver the plan by email.
 
 Q: Group orders?
-A: Direct them to /contact for quote-based group coordination.
+A: Direct them to ${link("contact us", "/contact")} for quote-based group coordination.
 
 Q: Refunds?
 A: All sales final once a digital guide is delivered.
