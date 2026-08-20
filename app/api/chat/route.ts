@@ -21,7 +21,7 @@ Q: How is this different from a free travel blog?
 A: Every claim is labeled by confidence: Verified, Ventariq Insight, Time Saver, Money Saver, Avoid This Mistake, or Not Yet Confirmed.
 
 Q: How do I get my guide after paying?
-A: Immediately on the success page (direct download link) plus an emailed backup. No account/login required to buy or download.
+A: Immediately after payment, you'll receive an instant delivery of the planner. No account or login is required to buy or download.
 
 Q: I lost my download link.
 A: Use "Resend My Guide" at /resend-guide with the email used at checkout.
