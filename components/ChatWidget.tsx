@@ -90,7 +90,7 @@ export default function ChatWidget() {
           <div className="flex items-center justify-between bg-[#152238] px-4 py-3.5">
             <div className="flex items-center gap-2">
               <Image
-                src="/ventariq-logo.png"
+                src="/logo/venlogo.jpeg"
                 alt="Ventariq Logo"
                 width={28}
                 height={28}
