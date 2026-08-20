@@ -43,11 +43,11 @@ export default function ChatWidget() {
     const alreadyEngaged = sessionStorage.getItem("ventariq-chat-engaged");
     if (alreadyEngaged) return;
 
-    const pulseTimer = setTimeout(() => setPulse(true), 4000);
+    const pulseTimer = setTimeout(() => setPulse(true), 2000);
     const openTimer = setTimeout(() => {
       setOpen(true);
       sessionStorage.setItem("ventariq-chat-engaged", "1");
-    }, 8000);
+    }, 3000);
 
     return () => {
       clearTimeout(pulseTimer);
