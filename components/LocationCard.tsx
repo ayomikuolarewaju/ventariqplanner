@@ -20,7 +20,7 @@ export default function LocationCard({
           {location.name}
         </p>
         <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#152238] block">
-          View section
+          Buy Planner
           <span className="transition-transform group-hover:translate-x-1">
             →
           </span>
