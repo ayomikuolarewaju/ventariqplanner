@@ -1,22 +1,9 @@
 // app/api/webhooks/stripe/route.ts
-//
-// npm install stripe resend
-//
-// After deploying, create the webhook endpoint in the Stripe Dashboard
-// pointing at https://yourdomain.com/api/webhooks/stripe, subscribed to
-// checkout.session.completed. Copy the signing secret into
-// STRIPE_WEBHOOK_SECRET.
-//
-// Uses the service-role client throughout -- this route has no user
-// session (Stripe calls it directly), and needs to bypass RLS to write
-// orders/customers.
 
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { resend } from "@/lib/resend";
-import { renderToBuffer } from "@react-pdf/renderer";
-import { CityGuideDocument } from "@/lib/pdf/CityGuideDocument";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -42,11 +29,9 @@ export async function POST(req: Request) {
   const supabase = createAdminClient();
 
   try {
-    // idempotency: Stripe retries webhooks, never process the same
-    // session twice
     const { data: existingOrder } = await supabase
       .from("orders")
-      .select("id, fulfillment_status")
+      .select("id")
       .eq("stripe_checkout_session_id", session.id)
       .maybeSingle();
 
@@ -54,8 +39,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true, alreadyProcessed: true });
     }
 
-    // find-or-create customer, matched by email -- NOT the same as the
-    // Supabase Auth user id, per the real customers table shape
     const email = session.customer_details?.email ?? session.customer_email;
     if (!email) throw new Error("Checkout session has no customer email");
 
@@ -74,6 +57,7 @@ export async function POST(req: Request) {
           full_name: session.customer_details?.name ?? null,
           phone: session.customer_details?.phone ?? null,
           stripe_customer_id: session.customer ?? null,
+          country_of_origin: session.customer_details?.address?.country ?? null,
         })
         .select("*")
         .single();
@@ -85,7 +69,34 @@ export async function POST(req: Request) {
     const kind = metadata.kind as "plan" | "location_guide";
     const sku = metadata.sku as string;
 
-    const fulfillmentStatus = kind === "plan" ? "awaiting_intake" : "processing";
+    // Look up the plan's real delivery config -- this is the source of
+    // truth, not the Stripe metadata, since it can be edited in admin
+    // without needing a new checkout session to pick up changes.
+    let deliveryType: "instant_download" | "personalized" = "personalized";
+    let assetProductSku: string | null = null;
+    let assetCitySlug: string | null = null;
+
+    if (kind === "plan") {
+      const { data: plan } = await supabase
+        .from("plans")
+        .select("delivery_type, asset_product_sku, asset_city_slug")
+        .eq("sku", sku)
+        .maybeSingle();
+
+      if (plan) {
+        deliveryType = plan.delivery_type ?? "personalized";
+        assetProductSku = plan.asset_product_sku;
+        assetCitySlug = plan.asset_city_slug;
+      }
+    } else if (kind === "location_guide") {
+      // legacy path -- a per-venue asset, if one ever exists, keyed the
+      // same way the old system did (product_sku + city_slug)
+      deliveryType = "instant_download";
+      assetProductSku = sku;
+      assetCitySlug = metadata.location_slug || null;
+    }
+
+    const fulfillmentStatus = deliveryType === "instant_download" ? "processing" : "awaiting_intake";
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
@@ -106,15 +117,16 @@ export async function POST(req: Request) {
 
     if (orderError) throw orderError;
 
-    if (kind === "location_guide") {
-      await deliverLocationGuide(supabase, {
+    if (deliveryType === "instant_download" && assetProductSku) {
+      await deliverStoredAsset(supabase, {
         order,
         customer,
-        eventSlug: metadata.event_slug,
-        locationSlug: metadata.location_slug,
+        sku,
+        assetProductSku,
+        assetCitySlug,
       });
-    } else if (kind === "plan") {
-      await sendIntakeEmail({ order, customer, sku });
+    } else {
+      await sendIntakeEmail(supabase, { order, customer, sku });
     }
 
     return NextResponse.json({ received: true });
@@ -127,92 +139,109 @@ export async function POST(req: Request) {
   }
 }
 
-async function deliverLocationGuide(
+async function deliverStoredAsset(
   supabase: ReturnType<typeof createAdminClient>,
   {
     order,
     customer,
-    eventSlug,
-    locationSlug,
-  }: { order: any; customer: any; eventSlug: string; locationSlug: string }
+    sku,
+    assetProductSku,
+    assetCitySlug,
+  }: {
+    order: any;
+    customer: any;
+    sku: string;
+    assetProductSku: string;
+    assetCitySlug: string | null;
+  }
 ) {
-  const { data: event } = await supabase
-    .from("events")
+  let query = supabase
+    .from("download_assets")
     .select("*")
-    .eq("slug", eventSlug)
-    .single();
+    .eq("product_sku", assetProductSku)
+    .eq("active", true)
+    .order("created_at", { ascending: false })
+    .limit(1);
 
-  const { data: location } = await supabase
-    .from("event_locations")
-    .select("*")
-    .eq("event_id", event.id)
-    .eq("slug", locationSlug)
-    .single();
+  if (assetCitySlug) {
+    query = query.eq("city_slug", assetCitySlug);
+  }
 
-  const { data: categories } = await supabase
-    .from("service_categories")
-    .select("id, name, location_services(name, description)")
-    .eq("location_id", location.id);
+  const { data: assets } = await query;
+  const asset = assets?.[0];
 
-  const services = (categories ?? []).flatMap((cat: any) =>
-    (cat.location_services ?? []).map((s: any) => ({
-      category: cat.name,
-      name: s.name,
-      description: s.description,
-    }))
-  );
+  if (!asset) {
+    console.error(
+      `No active download_assets row for asset_product_sku=${assetProductSku}${assetCitySlug ? ` city_slug=${assetCitySlug}` : ""}`
+    );
+    await supabase.from("orders").update({ fulfillment_status: "manual_review" }).eq("id", order.id);
+    await supabase.from("fulfillment_deliveries").insert({
+      order_id: order.id,
+      customer_id: customer.id,
+      product_sku: sku,
+      delivery_type: "instant_download",
+      delivery_status: "failed",
+      delivery_note: `No matching download_assets row for ${assetProductSku}${assetCitySlug ? `/${assetCitySlug}` : ""} -- needs manual delivery.`,
+    });
+    return;
+  }
 
-  const pdfBuffer = await renderToBuffer(
-    <CityGuideDocument
-      eyebrow={event.eyebrow}
-      cityName={location.name}
-      tagline={location.description}
-      heroImage={location.image}
-      services={services}
-    />
-  );
-
-  // store it -- keyed by order id, since checkout is guest-only now and
-  // there's no auth user id to key it by. This is what lets the
-  // checkout-success page offer a direct download link.
-  const storagePath = `${eventSlug}/${locationSlug}/${order.id}.pdf`;
-  await supabase.storage.from("guides").upload(storagePath, pdfBuffer, {
-    contentType: "application/pdf",
-    upsert: true,
-  });
+  const response = await fetch(asset.asset_url);
+  if (!response.ok) {
+    throw new Error(`Could not download PDF from ${asset.asset_url}. Status: ${response.status}`);
+  }
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const filename = asset.asset_name ? `${asset.asset_name}.pdf` : `${sku}.pdf`;
 
   await resend.emails.send({
-    from: process.env.FROM_EMAIL || "ComfortLifeUS <info@mail.comfortlifeus.com>",
+    from: process.env.FROM_EMAIL || "Ventariq <info@mail.ventariq.com>",
     to: customer.email,
-    subject: `Your ${location.name} Guide Is Ready`,
-    html: `<p>Hello ${customer.full_name ?? ""},</p><p>Thank you for your purchase. Your ${location.name} guide is attached to this email.</p><p>Best regards,<br/>ComfortLifeUS</p>`,
-    attachments: [
-      { filename: `${location.slug}-guide.pdf`, content: pdfBuffer.toString("base64") },
-    ],
+    subject: `Your ${asset.asset_name || "Ventariq"} Guide Is Ready`,
+    html: `<p>Hello ${customer.full_name ?? ""},</p><p>Thank you for your purchase. Your guide is attached to this email.</p><p>Best regards,<br/>Ventariq</p>`,
+    attachments: [{ filename, content: buffer.toString("base64") }],
   });
 
   await supabase
     .from("orders")
-    .update({ fulfillment_status: "delivered" })
+    .update({
+      fulfillment_status: "delivered",
+      asset_product_sku: asset.product_sku,
+      asset_city_slug: asset.city_slug,
+    })
     .eq("id", order.id);
+
+  await supabase.from("fulfillment_deliveries").insert({
+    order_id: order.id,
+    customer_id: customer.id,
+    product_sku: sku,
+    delivery_type: "instant_download",
+    delivery_status: "delivered",
+    delivery_note: `${asset.asset_name || sku} | ${asset.asset_url}`,
+    sent_at: new Date().toISOString(),
+  });
 }
 
-async function sendIntakeEmail({
-  order,
-  customer,
-  sku,
-}: {
-  order: any;
-  customer: any;
-  sku: string;
-}) {
-  const base = process.env.WEBSITE_URL || "https://comfortlifeus.com";
+async function sendIntakeEmail(
+  supabase: ReturnType<typeof createAdminClient>,
+  { order, customer, sku }: { order: any; customer: any; sku: string }
+) {
+  const base = process.env.WEBSITE_URL || "https://ventariqplanner.netlify.app";
   const url = `${base}/intake?order_id=${order.id}&product_sku=${encodeURIComponent(sku)}`;
 
   await resend.emails.send({
-    from: process.env.FROM_EMAIL || "ComfortLifeUS <info@mail.comfortlifeus.com>",
+    from: process.env.FROM_EMAIL || "Ventariq <info@mail.ventariq.com>",
     to: customer.email,
-    subject: "Please Complete Your ComfortLifeUS Travel Intake Form",
-    html: `<p>Hello ${customer.full_name ?? ""},</p><p>Thank you for your purchase. Your selected plan requires a few trip details before we can prepare your personalized plan.</p><p><a href="${url}">Complete your intake form here</a></p><p>Best regards,<br/>ComfortLifeUS</p>`,
+    subject: "Please Complete Your Ventariq Travel Intake Form",
+    html: `<p>Hello ${customer.full_name ?? ""},</p><p>Thank you for your purchase. Your selected plan requires a few trip details before we can prepare your personalized plan.</p><p><a href="${url}">Complete your intake form here</a></p><p>Best regards,<br/>Ventariq</p>`,
+  });
+
+  await supabase.from("fulfillment_deliveries").insert({
+    order_id: order.id,
+    customer_id: customer.id,
+    product_sku: sku,
+    delivery_type: "intake_form",
+    delivery_status: "sent",
+    delivery_note: url,
+    sent_at: new Date().toISOString(),
   });
 }

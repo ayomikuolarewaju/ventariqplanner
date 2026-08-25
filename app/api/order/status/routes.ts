@@ -1,11 +1,6 @@
 // app/api/orders/status/route.ts
 //
 // GET /api/orders/status?session_id=cs_...
-//
-// Looks up an order by its Stripe checkout session id -- this doubles
-// as the access control for guest checkout, since only the actual
-// purchaser has that id (Stripe puts it in the success_url redirect).
-// No auth session needed or expected.
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
@@ -26,33 +21,41 @@ export async function GET(req: Request) {
     .maybeSingle();
 
   if (!order) {
-    // webhook may not have landed yet -- tell the client to keep polling
     return NextResponse.json({ status: "pending" });
   }
 
-  const isLocationGuide = !!order.location_slug;
-
-  if (isLocationGuide) {
-    if (order.fulfillment_status !== "delivered") {
-      return NextResponse.json({ status: "processing", kind: "location_guide" });
-    }
-
-    const storagePath = `${order.event_slug}/${order.location_slug}/${order.id}.pdf`;
-    const { data: signed } = await supabase.storage
-      .from("guides")
-      .createSignedUrl(storagePath, 60 * 30); // 30 minutes
-
-    return NextResponse.json({
-      status: "ready",
-      kind: "location_guide",
-      downloadUrl: signed?.signedUrl ?? null,
-    });
+  if (order.fulfillment_status === "awaiting_intake") {
+    return NextResponse.json({ status: "ready", kind: "plan" });
   }
 
-  // plan (personalized) order -- no PDF to download directly, intake
-  // email already sent by the webhook
+  if (order.fulfillment_status === "manual_review") {
+    return NextResponse.json({ status: "manual_review" });
+  }
+
+  if (order.fulfillment_status !== "delivered") {
+    return NextResponse.json({ status: "processing" });
+  }
+
+  // delivered -- order.asset_product_sku/asset_city_slug were set by
+  // the webhook to record exactly which download_assets row was sent
+  let query = supabase
+    .from("download_assets")
+    .select("asset_url, asset_name")
+    .eq("product_sku", order.asset_product_sku)
+    .eq("active", true)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (order.asset_city_slug) {
+    query = query.eq("city_slug", order.asset_city_slug);
+  }
+
+  const { data: assets } = await query;
+  const asset = assets?.[0];
+
   return NextResponse.json({
     status: "ready",
-    kind: "plan",
+    kind: "instant_download",
+    downloadUrl: asset?.asset_url ?? null,
   });
 }

@@ -1,9 +1,4 @@
 // app/api/orders/resend/route.ts
-//
-// POST { email } -> always returns a generic success message, whether
-// or not the email matches anything -- this avoids leaking which
-// emails have purchase history (a minor but real privacy/security
-// practice for any email-based lookup with no password).
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
@@ -28,7 +23,6 @@ export async function POST(req: Request) {
     .maybeSingle();
 
   if (!customer) {
-    // don't reveal whether the email exists
     return NextResponse.json({ message: GENERIC_MESSAGE });
   }
 
@@ -37,7 +31,7 @@ export async function POST(req: Request) {
     .select("*")
     .eq("customer_id", customer.id)
     .eq("fulfillment_status", "delivered")
-    .not("location_slug", "is", null);
+    .not("asset_product_sku", "is", null);
 
   if (!orders || orders.length === 0) {
     return NextResponse.json({ message: GENERIC_MESSAGE });
@@ -46,26 +40,36 @@ export async function POST(req: Request) {
   const links: { name: string; url: string }[] = [];
 
   for (const order of orders) {
-    const storagePath = `${order.event_slug}/${order.location_slug}/${order.id}.pdf`;
-    const { data: signed } = await supabase.storage
-      .from("guides")
-      .createSignedUrl(storagePath, 60 * 60 * 24); // 24 hours -- longer than the immediate post-checkout link
+    let query = supabase
+      .from("download_assets")
+      .select("asset_url, asset_name")
+      .eq("product_sku", order.asset_product_sku)
+      .eq("active", true)
+      .order("created_at", { ascending: false })
+      .limit(1);
 
-    if (signed?.signedUrl) {
-      links.push({ name: order.location_slug, url: signed.signedUrl });
+    if (order.asset_city_slug) {
+      query = query.eq("city_slug", order.asset_city_slug);
+    }
+
+    const { data: assets } = await query;
+    const asset = assets?.[0];
+
+    if (asset?.asset_url) {
+      links.push({ name: asset.asset_name || order.product_sku, url: asset.asset_url });
     }
   }
 
   if (links.length > 0) {
     await resend.emails.send({
-      from: process.env.FROM_EMAIL || "ComfortLifeUS <info@mail.comfortlifeus.com>",
+      from: process.env.FROM_EMAIL || "Ventariq <info@mail.ventariq.com>",
       to: customer.email,
-      subject: "Your ComfortLifeUS Guides",
+      subject: "Your Ventariq Guides",
       html: `<p>Hello ${customer.full_name ?? ""},</p><p>Here ${
         links.length === 1 ? "is your guide" : "are your guides"
-      }, ready to download (links valid for 24 hours):</p><ul>${links
+      }:</p><ul>${links
         .map((l) => `<li><a href="${l.url}">${l.name}</a></li>`)
-        .join("")}</ul><p>Best regards,<br/>ComfortLifeUS</p>`,
+        .join("")}</ul><p>Best regards,<br/>Ventariq</p>`,
     });
   }
 

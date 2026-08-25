@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-type Status = "loading" | "processing" | "ready-guide" | "ready-plan" | "error";
+type Status = "loading" | "processing" | "ready-guide" | "ready-plan" | "manual-review" | "error";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -32,7 +32,12 @@ function SuccessContent() {
 
         if (cancelled) return;
 
-        if (data.status === "ready" && data.kind === "location_guide") {
+        if (data.status === "manual_review") {
+          setStatus("manual-review");
+          return;
+        }
+
+        if (data.status === "ready" && data.kind === "instant_download") {
           setDownloadUrl(data.downloadUrl);
           setStatus("ready-guide");
           return;
@@ -116,6 +121,19 @@ function SuccessContent() {
               Personalized plans need a few trip details first — we&apos;ve
               emailed a short intake form so we can build yours around
               your actual dates and preferences.
+            </p>
+          </>
+        )}
+
+        {status === "manual-review" && (
+          <>
+            <h1 className="font-serif text-3xl font-bold text-white">
+              Almost there.
+            </h1>
+            <p className="mt-4 text-[15px] text-[#C9C2A8]">
+              Your payment went through, but we need to prepare your
+              guide by hand. We&apos;ll email it to you shortly — no
+              action needed from you.
             </p>
           </>
         )}
