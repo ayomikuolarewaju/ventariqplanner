@@ -58,6 +58,8 @@ export default async function EditEventPage({
           description: l.description,
           image: l.image ?? "",
           basePrice: l.base_price != null ? String(l.base_price) : "",
+          assetProductSku: l.asset_product_sku ?? "",
+          assetCitySlug: l.asset_city_slug ?? "",
         }))}
       />
     </main>

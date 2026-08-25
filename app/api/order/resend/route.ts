@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     .from("orders")
     .select("*")
     .eq("customer_id", customer.id)
-    .eq("fulfillment_status", "delivered")
+    .eq("fulfillment_status", "fulfilled")
     .not("asset_product_sku", "is", null);
 
   if (!orders || orders.length === 0) {

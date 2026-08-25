@@ -48,7 +48,7 @@ export async function GET(
     .select("id")
     .eq("customer_id", customer.id)
     .eq("product_sku", guideSku)
-    .eq("fulfillment_status", "delivered")
+    .eq("fulfillment_status", "fulfilled")
     .maybeSingle();
 
   if (!order) {

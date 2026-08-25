@@ -89,11 +89,32 @@ export async function POST(req: Request) {
         assetCitySlug = plan.asset_city_slug;
       }
     } else if (kind === "location_guide") {
-      // legacy path -- a per-venue asset, if one ever exists, keyed the
-      // same way the old system did (product_sku + city_slug)
-      deliveryType = "instant_download";
-      assetProductSku = sku;
-      assetCitySlug = metadata.location_slug || null;
+      // look up the location's admin-configured asset mapping, rather
+      // than guessing it from the generated sku -- that guess never
+      // matches the real download_assets naming
+      const { data: eventRow } = await supabase
+        .from("events")
+        .select("id")
+        .eq("slug", metadata.event_slug)
+        .maybeSingle();
+
+      if (eventRow) {
+        const { data: location } = await supabase
+          .from("event_locations")
+          .select("asset_product_sku, asset_city_slug")
+          .eq("event_id", eventRow.id)
+          .eq("slug", metadata.location_slug)
+          .maybeSingle();
+
+        if (location?.asset_product_sku) {
+          deliveryType = "instant_download";
+          assetProductSku = location.asset_product_sku;
+          assetCitySlug = location.asset_city_slug;
+        }
+      }
+      // if no mapping is configured, deliveryType stays "personalized"
+      // -- falls through to the intake-email path below, rather than
+      // silently failing into manual_review
     }
 
     const fulfillmentStatus = deliveryType === "instant_download" ? "processing" : "awaiting_intake";
@@ -124,6 +145,19 @@ export async function POST(req: Request) {
         sku,
         assetProductSku,
         assetCitySlug,
+      });
+    } else if (kind === "location_guide") {
+      // a location guide with no asset mapping configured yet -- flag
+      // for manual handling rather than sending a misleading
+      // "personalized plan" intake email
+      await supabase.from("orders").update({ fulfillment_status: "failed" }).eq("id", order.id);
+      await supabase.from("fulfillment_deliveries").insert({
+        order_id: order.id,
+        customer_id: customer.id,
+        product_sku: sku,
+        delivery_type: "instant_download",
+        delivery_status: "failed",
+        delivery_note: `Location "${metadata.location_slug}" under event "${metadata.event_slug}" has no asset mapping configured in admin -- needs manual delivery.`,
       });
     } else {
       await sendIntakeEmail(supabase, { order, customer, sku });
@@ -174,7 +208,7 @@ async function deliverStoredAsset(
     console.error(
       `No active download_assets row for asset_product_sku=${assetProductSku}${assetCitySlug ? ` city_slug=${assetCitySlug}` : ""}`
     );
-    await supabase.from("orders").update({ fulfillment_status: "manual_review" }).eq("id", order.id);
+    await supabase.from("orders").update({ fulfillment_status: "failed" }).eq("id", order.id);
     await supabase.from("fulfillment_deliveries").insert({
       order_id: order.id,
       customer_id: customer.id,
@@ -204,7 +238,7 @@ async function deliverStoredAsset(
   await supabase
     .from("orders")
     .update({
-      fulfillment_status: "delivered",
+      fulfillment_status: "fulfilled",
       asset_product_sku: asset.product_sku,
       asset_city_slug: asset.city_slug,
     })
@@ -225,11 +259,11 @@ async function sendIntakeEmail(
   supabase: ReturnType<typeof createAdminClient>,
   { order, customer, sku }: { order: any; customer: any; sku: string }
 ) {
-  const base = process.env.WEBSITE_URL || "https://stratxct.com/";
+  const base = process.env.WEBSITE_URL || "https://ventariqplanner.netlify.app";
   const url = `${base}/intake?order_id=${order.id}&product_sku=${encodeURIComponent(sku)}`;
 
   await resend.emails.send({
-    from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
+    from: process.env.FROM_EMAIL || "Ventariq <info@mail.ventariq.com>",
     to: customer.email,
     subject: "Please Complete Your Ventariq Travel Intake Form",
     html: `<p>Hello ${customer.full_name ?? ""},</p><p>Thank you for your purchase. Your selected plan requires a few trip details before we can prepare your personalized plan.</p><p><a href="${url}">Complete your intake form here</a></p><p>Best regards,<br/>Ventariq</p>`,

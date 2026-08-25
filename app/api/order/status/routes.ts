@@ -28,11 +28,11 @@ export async function GET(req: Request) {
     return NextResponse.json({ status: "ready", kind: "plan" });
   }
 
-  if (order.fulfillment_status === "manual_review") {
+  if (order.fulfillment_status === "failed") {
     return NextResponse.json({ status: "manual_review" });
   }
 
-  if (order.fulfillment_status !== "delivered") {
+  if (order.fulfillment_status !== "fulfilled") {
     return NextResponse.json({ status: "processing" });
   }
 

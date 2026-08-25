@@ -31,6 +31,8 @@ type LocationDraft = {
   description: string;
   image: string;
   basePrice: string;
+  assetProductSku: string;
+  assetCitySlug: string;
 };
 
 type EventDraft = {
@@ -98,7 +100,7 @@ export default function EventForm({
   function addLocation() {
     setLocations((l) => [
       ...l,
-      { slug: "", name: "", description: "", image: "", basePrice: "" },
+      { slug: "", name: "", description: "", image: "", basePrice: "", assetProductSku: "", assetCitySlug: "" },
     ]);
   }
   function updateLocation(i: number, key: keyof LocationDraft, value: string) {
@@ -223,6 +225,8 @@ export default function EventForm({
           description: l.description,
           image: l.image || null,
           base_price: l.basePrice ? Number(l.basePrice) : 0,
+          asset_product_sku: l.assetProductSku || null,
+          asset_city_slug: l.assetCitySlug || null,
         };
         if (l.id) {
           const { error: locationError } = await supabase
@@ -457,6 +461,22 @@ export default function EventForm({
                   <input
                     value={l.image}
                     onChange={(e) => updateLocation(i, "image", e.target.value)}
+                    className="input"
+                  />
+                </Field>
+                <Field label="Delivery: Asset Product SKU (from download_assets)">
+                  <input
+                    value={l.assetProductSku}
+                    onChange={(e) => updateLocation(i, "assetProductSku", e.target.value)}
+                    placeholder="e.g. Ventariq_US_Open_2026"
+                    className="input"
+                  />
+                </Field>
+                <Field label="Delivery: Asset City Slug (from download_assets)">
+                  <input
+                    value={l.assetCitySlug}
+                    onChange={(e) => updateLocation(i, "assetCitySlug", e.target.value)}
+                    placeholder="e.g. us"
                     className="input"
                   />
                 </Field>
