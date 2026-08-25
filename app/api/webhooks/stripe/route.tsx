@@ -225,11 +225,11 @@ async function sendIntakeEmail(
   supabase: ReturnType<typeof createAdminClient>,
   { order, customer, sku }: { order: any; customer: any; sku: string }
 ) {
-  const base = process.env.WEBSITE_URL || "https://ventariqplanner.netlify.app";
+  const base = process.env.WEBSITE_URL || "https://stratxct.com/";
   const url = `${base}/intake?order_id=${order.id}&product_sku=${encodeURIComponent(sku)}`;
 
   await resend.emails.send({
-    from: process.env.FROM_EMAIL || "Ventariq <info@mail.ventariq.com>",
+    from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
     to: customer.email,
     subject: "Please Complete Your Ventariq Travel Intake Form",
     html: `<p>Hello ${customer.full_name ?? ""},</p><p>Thank you for your purchase. Your selected plan requires a few trip details before we can prepare your personalized plan.</p><p><a href="${url}">Complete your intake form here</a></p><p>Best regards,<br/>Ventariq</p>`,
