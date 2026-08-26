@@ -80,7 +80,8 @@ export async function getEvents(): Promise<EventItem[]> {
   const { data: eventRows } = await supabase
     .from("events")
     .select("*")
-    .order("created_at");
+    .order( "status",{ascending: false});
+    
 
   if (!eventRows) return [];
 

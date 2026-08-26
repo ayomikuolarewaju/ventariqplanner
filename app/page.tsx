@@ -66,7 +66,7 @@ export default async function Home() {
             <div className="flex flex-wrap">
               {[
                 { num: String(upcomingEvents.length || 2), lbl: "Events live for 2026" },
-                { num: "50+", lbl: "Pages per guide" },
+                { num: "30+", lbl: "Pages per planner" },
                 { num: "6", lbl: "Confidence tags, every claims supported" },
               ].map((stat) => (
                 <div

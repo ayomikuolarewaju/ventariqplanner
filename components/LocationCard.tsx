@@ -27,7 +27,7 @@ export default function LocationCard({
       <div className="flex items-center justify-between gap-3">
         {location.basePrice > 0 ? (
           <span className="text-[13px] font-bold text-[#8C6423]">
-            From ${location.basePrice.toFixed(2)}
+             ${location.basePrice.toFixed(2)}
           </span>
         ) : (
           <span />

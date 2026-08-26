@@ -48,12 +48,17 @@ export default function EditionCard({
         <p className="mb-5 text-[14.5px] text-[#5A6472]">
           {event.description}
         </p>
-        <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#152238]">
+        {
+          event.status === "upcoming" ? <span className="inline-flex items-center gap-1.5 text-sm font-bold text-[#152238]">
           View the planner
           <span className="transition-transform group-hover:translate-x-1">
             →
           </span>
-        </span>
+          </span>
+          :
+          ""
+        }
+        
       </div>
     </Link>
   );
