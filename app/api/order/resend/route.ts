@@ -62,7 +62,7 @@ export async function POST(req: Request) {
 
   if (links.length > 0) {
     await resend.emails.send({
-      from: process.env.FROM_EMAIL || "Ventariq <info@mail.ventariq.com>",
+      from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
       to: customer.email,
       subject: "Your Ventariq Guides",
       html: `<p>Hello ${customer.full_name ?? ""},</p><p>Here ${

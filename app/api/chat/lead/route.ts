@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
+import { resend } from "@/lib/resend";
 
 export async function POST(req: Request) {
   const { name, email, phone, conversation } = await req.json();
@@ -17,6 +18,13 @@ export async function POST(req: Request) {
     email,
     phone: phone || null,
     conversation: conversation ?? null,
+  });
+
+  resend.emails.send({
+    from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
+    to: email,
+    subject: "New Chat Lead",
+    html: `<p>A new chat lead has been submitted:</p><ul><li><strong>Name:</strong> ${name || "Not provided"}</li><li><strong>Email:</strong> ${email}</li><li><strong>Phone:</strong> ${phone || "Not provided"}</li><li><strong>Conversation:</strong> ${conversation || "Not provided"}</li></ul>`,
   });
 
   if (error) {
