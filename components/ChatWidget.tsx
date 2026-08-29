@@ -130,7 +130,7 @@ export default function ChatWidget() {
 
     const mentionsHandoff =
       !!latestReply &&
-      /\b(live agent|human agent|live support|support team|our team|speak (to|with) (a |our )?(human|someone|agent|team member)|connect you (with|to))\b/i.test(
+      /\b(live agent|human agent|live support|chat support |live chat|support team|our team|speak (to|with) (a |our )?(human|someone|agent|team member)|connect you (with|to))\b/i.test(
         latestReply.content
       );
 
