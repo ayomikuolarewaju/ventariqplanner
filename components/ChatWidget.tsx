@@ -96,11 +96,11 @@ export default function ChatWidget() {
     const alreadyEngaged = sessionStorage.getItem("ventariq-chat-engaged");
     if (alreadyEngaged) return;
 
-    const pulseTimer = setTimeout(() => setPulse(true), 2000);
+    const pulseTimer = setTimeout(() => setPulse(true), 4000);
     const openTimer = setTimeout(() => {
       setOpen(true);
       sessionStorage.setItem("ventariq-chat-engaged", "1");
-    }, 3000);
+    }, 8000);
 
     return () => {
       clearTimeout(pulseTimer);
@@ -118,17 +118,29 @@ export default function ChatWidget() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading, showLeadForm]);
 
-  // After a few real answers, offer a human handoff -- triggers once
-  // per conversation, not on every message after the threshold.
+  // Offer a human handoff either after a few real answers, OR
+  // immediately if the bot's own reply already mentions a live
+  // agent/human/support team -- whichever comes first. Triggers once
+  // per conversation either way.
   useEffect(() => {
-    const assistantReplies = messages.filter((m) => m.role === "assistant").length - 1; // exclude greeting
-    if (
-      assistantReplies >= REPLIES_BEFORE_HANDOFF &&
-      !handoffTriggered.current &&
-      !leadDismissed
-    ) {
+    if (handoffTriggered.current || leadDismissed) return;
+
+    const assistantReplies = messages.filter((m) => m.role === "assistant").slice(1); // exclude greeting
+    const latestReply = assistantReplies[assistantReplies.length - 1];
+
+    const mentionsHandoff =
+      !!latestReply &&
+      /\b(live agent|human agent|support team|our team|speak (to|with) (a |our )?(human|someone|agent|team member)|connect you (with|to))\b/i.test(
+        latestReply.content
+      );
+
+    if (mentionsHandoff || assistantReplies.length >= REPLIES_BEFORE_HANDOFF) {
       handoffTriggered.current = true;
-      setMessages((m) => [...m, HANDOFF_MESSAGE]);
+      // only add the canned nudge when triggered by the reply count --
+      // if the bot's own message already raised it, that's enough
+      if (!mentionsHandoff) {
+        setMessages((m) => [...m, HANDOFF_MESSAGE]);
+      }
       setShowLeadForm(true);
     }
   }, [messages, leadDismissed]);
@@ -214,7 +226,7 @@ export default function ChatWidget() {
   return (
     <div className="fixed bottom-3 right-5 z-50">
       {open && (
-        <div className="mb-3 flex h-[520px] w-[340px] flex-col overflow-hidden rounded-[12px] border border-[#D8D2C2] bg-white shadow-[0_20px_50px_-15px_rgba(13,20,32,0.35)] sm:w-[380px]">
+        <div className="mb-3 flex h-[450px] w-[340px] flex-col overflow-hidden rounded-[12px] border border-[#D8D2C2] bg-white shadow-[0_20px_50px_-15px_rgba(13,20,32,0.35)] sm:w-[380px]">
           <div className="flex items-center justify-between bg-[#152238] px-4 py-3.5">
             <div className="flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[#B8863B] font-serif text-sm font-bold text-[#0D1420]">
