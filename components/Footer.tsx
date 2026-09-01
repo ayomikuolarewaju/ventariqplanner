@@ -34,12 +34,12 @@ export default function Footer() {
             </h5>
             <ul className="space-y-2.5">
               <li>
-                <Link href="/events/us-open" className="hover:text-white">
+                <Link href="/events/us" className="hover:text-white">
                   US Open 2026
                 </Link>
               </li>
               <li>
-                <Link href="/events/tiff" className="hover:text-white">
+                <Link href="/events/toronto" className="hover:text-white">
                   TIFF 2026
                 </Link>
               </li>
