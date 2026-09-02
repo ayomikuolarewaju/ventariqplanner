@@ -14,6 +14,9 @@ const groq = new Groq({
 const MODEL = "openai/gpt-oss-20b";
 
 const FAQ_TEXT = `
+Q: Which event are you interested in?
+A:  US Open 2026, TIFF 2026, and Other Event / See Upcoming Events.
+
 Q: What exactly am I buying?
 A: A complete Experience Planner for one event -- tickets, venue navigation, transit, dining, and logistics, as a downloadable PDF plus an emailed backup copy.
 
