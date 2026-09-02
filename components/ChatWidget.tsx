@@ -61,7 +61,7 @@ function renderMessageContent(content: string) {
 const GREETING: Message = {
   role: "assistant",
   content:
-    "Hi! I'm the Ventariq assistant. Ask me about an upcoming edition, or tell me about your trip and I'll help you pick the right guide.",
+    "Welcome to Ventariq 👋,What can I help you find today?",
 };
 
 const HANDOFF_MESSAGE: Message = {
