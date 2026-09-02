@@ -61,6 +61,11 @@ export default function Footer() {
                   The Ventariq Difference
                 </Link>
               </li>
+               <li>
+                <Link href="/intelligence-desk" className="hover:text-white">
+                  Intelligence Desk
+                </Link>
+              </li>
               <li>
                 <Link href="/faq" className="hover:text-white">
                   FAQ
