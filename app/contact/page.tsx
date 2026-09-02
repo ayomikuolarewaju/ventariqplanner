@@ -134,6 +134,13 @@ export default function ContactPage() {
               </div>
 
               <div>
+                <p className="font-bold text-[#152238]">Phone</p>
+                <p className="text-[14px] text-[#5A6472]">
+                  (888) 861-5090
+                </p>
+              </div>
+
+              <div>
                 <p className="font-bold text-[#152238]">Company</p>
                 <a
                   href="https://stratxct.com"
