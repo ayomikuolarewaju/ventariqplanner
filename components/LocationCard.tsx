@@ -32,12 +32,12 @@ export default function LocationCard({
         ) : (
           <span />
         )}
-        <Link
+        {/* <Link
           href={`/events/${eventSlug}/locations/${location.slug}`}
           className="text-[13px] font-semibold text-[#5A6472] hover:text-[#152238]"
         >
           View details →
-        </Link>
+        </Link> */}
       </div>
 
       {location.basePrice > 0 && (
