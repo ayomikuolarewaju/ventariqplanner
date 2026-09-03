@@ -67,7 +67,7 @@ export default async function Home() {
               {[
                 { num: String(upcomingEvents.length || 2), lbl: "Events live for 2026" },
                 { num: "30+", lbl: "Pages per planner" },
-                { num: "6", lbl: "Confidence tags, every claims supported" },
+                { num: "6", lbl: "Intelligence labels for clearer decision-making" },
               ].map((stat) => (
                 <div
                   key={stat.lbl}
