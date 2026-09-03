@@ -19,7 +19,7 @@ export default function LocationCard({
         <h3 className="mb-2 font-serif text-xl text-[#152238]">
           {location.name}
         </h3>
-        <p className="mb-4 line-clamp-2 text-[13.8px] text-[#5A6472]">
+        <p className="mb-4  text-[13.8px] text-[#5A6472]">
           {location.description}
         </p>
       </Link>
