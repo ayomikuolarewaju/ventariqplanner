@@ -11,6 +11,8 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
+const resend = "https://stratxct.com/resend-guide";
+const contact = "https://stratxct.com/contact";
 const MODEL = "openai/gpt-oss-20b";
 
 const FAQ_TEXT = `
@@ -24,16 +26,19 @@ Q: How is this different from a free travel blog?
 A: Every claim is labeled by confidence: Verified, Ventariq Insight, Time Saver, Money Saver, Avoid This Mistake, or Not Yet Confirmed.
 
 Q: How do I get my guide after paying?
-A: Immediately after payment, you'll receive an instant delivery of the planner. No account or login is required to buy or download.
+A: Once payment is made, your planner will be instantly delivered to your email. No account or log in is required.
 
 Q: I lost my download link.
-A: Use "Resend My Guide" at /resend-guide with the email used at checkout.
+A: Use "Resend My Guide" at ${resend} with the email used at checkout.
 
 Q: What about personalized plans (not a location guide)?
 A: We email a short intake form first, then prepare and deliver the plan by email.
 
+Q: I lost my download link — what now?
+A: Use "Resend My Guide" at ${resend} with the email used at checkout.
+
 Q: Group orders?
-A: Direct them to /contact for quote-based group coordination.
+A: Direct them to ${contact} for quote-based group coordination.
 
 Q: Refunds?
 A: All sales final once a digital guide is delivered.
