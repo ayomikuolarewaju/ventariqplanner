@@ -36,7 +36,7 @@ export default function PurchaseButton({ sku }: { sku?: string }) {
       <button
         onClick={handleBuyClick}
         disabled={loading}
-        className="rounded-[5px] bg-[#B8863B] px-6 py-3 text-[15px] font-bold text-[#0D1420] transition-colors hover:bg-[#c99a4d] disabled:opacity-50"
+        className="cursor-pointer rounded-[5px] bg-[#B8863B] px-6 py-3 text-[15px] font-bold text-[#0D1420] transition-colors hover:bg-[#c99a4d] disabled:opacity-50"
       >
         {loading ? "…" : "GET THE PLANNER"}
       </button>
