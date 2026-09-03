@@ -15,14 +15,22 @@ export default function LocationCard({
 
   return (
     <div className="group rounded-[11px] border border-[#D8D2C2] bg-white p-6 transition-all hover:-translate-y-1 hover:shadow-[0_18px_40px_-22px_rgba(21,34,56,0.35)]">
-      <Link href={`/events/${eventSlug}/locations/${location.slug}`} className="block">
+     
         <h3 className="mb-2 font-serif text-xl text-[#152238]">
           {location.name}
         </h3>
-        <p className="mb-4  text-[13.8px] text-[#5A6472]">
-          {location.description}
-        </p>
-      </Link>
+        <ul className="mb-4 space-y-2 text-[13.8px] text-[#5A6472]">
+            {location.description
+              .split("✓")
+              .filter(Boolean)
+              .map((item, index) => (
+               <li key={index} className="flex items-start gap-2">
+                 <span className="text-green-600 font-semibold">✓</span>
+                 <span className="break-words">{item.trim()}</span>
+                </li>
+            ))}
+        </ul>
+      
 
       <div className="flex items-center justify-between gap-3">
         {location.basePrice > 0 ? (
