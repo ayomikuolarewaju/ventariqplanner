@@ -25,7 +25,7 @@ export default async function Home() {
   return (
     <main>
       {/* HERO */}
-      <section className="relative overflow-hidden bg-[#0D1420] py-28 pb-24 text-white md:min-h-[640px]">
+      <section className="relative overflow-hidden bg-[#0D1420] py-28 pb-24 text-white md:min-h-[640px] min-h-[100%]">
         <div
           className="absolute inset-0"
           style={{
@@ -87,7 +87,7 @@ export default async function Home() {
 
       {/* EDITION GALLERY -- the slideshow, moved out of the hero into its own section */}
       {slides.length > 0 && (
-        <section className="relative h-[380px] overflow-hidden bg-[#0D1420] md:h-[460px]">
+        <section className="relative h-[380px] overflow-hidden bg-[#0D1420] md:h-[460px] h-[100%]">
           <HeroSlideshow slides={slides} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0D1420]/85 via-transparent to-transparent" />
           <div className="container relative z-10 flex h-full flex-col justify-end pb-10 text-white">

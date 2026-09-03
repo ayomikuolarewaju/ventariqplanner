@@ -61,7 +61,7 @@ function renderMessageContent(content: string) {
 const GREETING: Message = {
   role: "assistant",
   content:
-    "Welcome to Ventariq 👋,What can I help you find today?",
+      "Welcome to Ventariq 👋,What can I help you find today?",
 };
 
 const HANDOFF_MESSAGE: Message = {
@@ -71,6 +71,34 @@ const HANDOFF_MESSAGE: Message = {
 };
 
 const REPLIES_BEFORE_HANDOFF = 3;
+
+const QUICK_QUESTIONS: { category: string; questions: string[] }[] = [
+  {
+    category: "What is a Ventariq Experience Planner?",
+    questions: [
+      "Briefly explain what the customer gets, what problems it solves, and how it differs from doing the research themselves?",
+      "How do I get my guide after I pay?",
+      "I lost my download link — what now?",
+    ],
+  },
+  {
+    category: " I already purchased a planner and need help?",
+    questions: [
+      "Delivery issue",
+      "What events do you currently cover?",
+      "Lost planner",
+      "Access latest version",
+      "Payment/purchase question",
+    ],
+  },
+  {
+    category: "🌍 I’m exploring Ventariq",
+    questions: [
+      "Explain Event Travel Intelligence",
+      "Route to the Intelligence Desk/free resources, current events, About Ventariq, etc.",
+    ],
+  },
+];
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
@@ -87,6 +115,10 @@ export default function ChatWidget() {
   const [leadStatus, setLeadStatus] = useState<"idle" | "sending" | "sent">("idle");
   const handoffTriggered = useRef(false);
 
+  const [openCategory, setOpenCategory] = useState<string | null>(
+    QUICK_QUESTIONS[0]?.category ?? null
+  );
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Proactively open once per browser session, a few seconds after the
@@ -96,11 +128,11 @@ export default function ChatWidget() {
     const alreadyEngaged = sessionStorage.getItem("ventariq-chat-engaged");
     if (alreadyEngaged) return;
 
-    const pulseTimer = setTimeout(() => setPulse(true), 4000);
+    const pulseTimer = setTimeout(() => setPulse(true), 2000);
     const openTimer = setTimeout(() => {
       setOpen(true);
       sessionStorage.setItem("ventariq-chat-engaged", "1");
-    }, 8000);
+    }, 4000);
 
     return () => {
       clearTimeout(pulseTimer);
@@ -130,7 +162,7 @@ export default function ChatWidget() {
 
     const mentionsHandoff =
       !!latestReply &&
-      /\b(live agent|human agent|live support|chat support |live chat|support team|our team|speak (to|with) (a |our )?(human|someone|agent|team member)|connect you (with|to))\b/i.test(
+      /\b(live agent|human agent|support team|our team|speak (to|with) (a |our )?(human|someone|agent|team member)|connect you (with|to))\b/i.test(
         latestReply.content
       );
 
@@ -145,9 +177,7 @@ export default function ChatWidget() {
     }
   }, [messages, leadDismissed]);
 
-  async function handleSend(e: React.FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
+  async function sendMessage(text: string) {
     if (!text || loading) return;
 
     const nextMessages: Message[] = [...messages, { role: "user", content: text }];
@@ -178,6 +208,12 @@ export default function ChatWidget() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleSend(e: React.FormEvent) {
+    e.preventDefault();
+    const text = input.trim();
+    sendMessage(text);
   }
 
   async function handleLeadSubmit(e: React.FormEvent) {
@@ -226,7 +262,7 @@ export default function ChatWidget() {
   return (
     <div className="fixed bottom-3 right-5 z-50">
       {open && (
-        <div className="mb-3 flex h-[450px] w-[340px] flex-col overflow-hidden rounded-[12px] border border-[#D8D2C2] bg-white shadow-[0_20px_50px_-15px_rgba(13,20,32,0.35)] sm:w-[380px]">
+        <div className="mb-3 flex h-[520px] w-[340px] flex-col overflow-hidden rounded-[12px] border border-[#D8D2C2] bg-white shadow-[0_20px_50px_-15px_rgba(13,20,32,0.35)] sm:w-[380px]">
           <div className="flex items-center justify-between bg-[#152238] px-4 py-3.5">
             <div className="flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[#B8863B] font-serif text-sm font-bold text-[#0D1420]">
@@ -261,6 +297,47 @@ export default function ChatWidget() {
             {loading && (
               <div className="max-w-[85%] rounded-[9px] bg-white px-3.5 py-2.5 text-[13.5px] text-[#5A6472] shadow-sm">
                 …
+              </div>
+            )}
+
+            {/* Quick-question accordion -- only shown before the person
+                has actually started chatting, so it doesn't clutter an
+                ongoing conversation */}
+            {messages.length === 1 && !loading && (
+              <div className="overflow-hidden rounded-[9px] border border-[#D8D2C2] bg-white shadow-sm">
+                {QUICK_QUESTIONS.map((group) => {
+                  const isOpen = openCategory === group.category;
+                  return (
+                    <div key={group.category} className="border-b border-[#D8D2C2] last:border-b-0">
+                      <button
+                        onClick={() => setOpenCategory(isOpen ? null : group.category)}
+                        className="flex w-full items-center justify-between px-3.5 py-2.5 text-left"
+                      >
+                        <span className="text-[12px] font-bold uppercase tracking-widest text-[#8C6423]">
+                          {group.category}
+                        </span>
+                        <span
+                          className={`text-sm text-[#B8863B] transition-transform ${isOpen ? "rotate-45" : ""}`}
+                        >
+                          +
+                        </span>
+                      </button>
+                      {isOpen && (
+                        <div className="space-y-1.5 px-3.5 pb-3">
+                          {group.questions.map((q) => (
+                            <button
+                              key={q}
+                              onClick={() => sendMessage(q)}
+                              className="block w-full rounded-[6px] bg-[#FCFBF8] px-3 py-2 text-left text-[12.5px] text-[#152238] transition-colors hover:bg-[#F4F1EA]"
+                            >
+                              {q}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
