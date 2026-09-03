@@ -13,6 +13,8 @@ const groq = new Groq({
 
 const resend = "https://stratxct.com/resend-guide";
 const contact = "https://stratxct.com/contact";
+const us_open = "https://stratxct.com/events/us";
+const tiff = "https://stratxct.com/events/toronto";
 const MODEL = "openai/gpt-oss-20b";
 
 const FAQ_TEXT = `
@@ -42,6 +44,9 @@ A: Direct them to ${contact} for quote-based group coordination.
 
 Q: Refunds?
 A: All sales final once a digital guide is delivered.
+
+Q: What events do you currently cover?
+A: We currently cover major events such as the US Open 2026 ${us_open}, TIFF 2026 ${tiff}, and other upcoming events.
 
 Q: Briefly explain what the customer gets, what problems it solves, and how it differs from doing the research themselves?
 A: A Ventariq Experience Planner is a ready‑made, research‑driven PDF that covers every aspect of your event: tickets, venue navigation, transit, dining, and logistics. It saves you ample time and money by providing verified, confidence‑labeled tips (Verified, Ventariq Insight, Time Saver, etc.) that a free blog can’t provide. Instead of piecing together articles, you get a single, instant‑download guide with an emailed backup—no account, no waiting, no guesswork.
