@@ -29,7 +29,7 @@ export default function HeroSlideshow({ slides }: { slides: Slide[] }) {
   if (slides.length === 0) return null;
 
   return (
-    <div className="absolute inset-0 overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden min-h-[100%] md:min-h-[460px] p-5">
       {slides.map((slide, i) => (
         <div
           key={slide.src}
@@ -37,12 +37,12 @@ export default function HeroSlideshow({ slides }: { slides: Slide[] }) {
             i === index ? "opacity-100" : "opacity-0"
           }`}
         >
-          <Image
+          <Image 
             src={slide.src}
             alt={slide.alt}
             fill
             priority={i === 0}
-            className="object-cover"
+            className="object-cover object-center h-full w-full"
           />
         </div>
       ))}
