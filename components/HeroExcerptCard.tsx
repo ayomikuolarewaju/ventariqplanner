@@ -35,7 +35,7 @@ export default function HeroExcerptCard() {
         </div>
         <div className="rounded-[3px] border-l-4 border-[#8C1C2B] bg-[#FBEAEC] p-3 text-[12.8px] leading-[1.45]">
           <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C1C2B]">
-            ☣️ TIME SAVER  
+            ⏱ TIME SAVER  
           </b>
           A specific action that reduces waiting, confusion, or unnecessary travel.
         </div>
@@ -49,7 +49,7 @@ export default function HeroExcerptCard() {
           <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C1C2B]">
             ⚠ AVOID THIS MISTAKE
           </b>
-          A specific way to reduce cost without reducing the experience.
+          A common planning error that can cost time, money or access.
         </div>
         <div className="rounded-[3px] border-l-4 border-[#8C1C2B] bg-[#FBEAEC] p-3 text-[12.8px] leading-[1.45] mt-2.5">
           <b className="mr-1 text-[11px] tracking-[0.03em] text-[#8C1C2B]">

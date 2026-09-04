@@ -166,7 +166,7 @@ export default async function Home() {
               Event Intelligence Desk
             </p>
             <h2 className="mb-3.5 font-serif text-[33px] font-bold text-[#152238]">
-              A living product, not a just static download.
+              A living product, not just a static download.
             </h2>
             <p className="text-base text-[#5A6472]">
               Events get real, versioned updates when time-sensitive
