@@ -1,13 +1,11 @@
 // app/events/[slug]/page.tsx
 
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import type { Metadata } from "next";
-import ProductCard from "@/components/ProductCard";
 import LocationCard from "@/components/LocationCard";
-import GuideExcerptCard from "@/components/GuideExcerptCard";
-import MiniFaq from "@/components/MiniFaq";
 import { getEvent } from "@/lib/events";
+import Image from "next/image";
+import PurchaseButton from "@/components/PurchaseButton";
 
 export async function generateMetadata({
   params,
@@ -36,10 +34,20 @@ export default async function EventLandingPage({
 }) {
   const { slug } = await params;
   const event = await getEvent(slug);
-
   if (!event) {
     notFound();
   }
+ const eventSlug = event.slug; 
+ console.log("eventSlug", eventSlug);
+ const guideSku = `${eventSlug.toUpperCase()}_${event.slug}_guide`;
+ console.log("guideSku", guideSku);
+ 
+          const plannerBenefits = 
+            [ 
+              `Practical planning information for ${event.name}`,
+               "Transportation, accommodation and destination guidance",
+                "Event-day planning and useful travel intelligence", 
+              ];
 
   return (
     <main>
@@ -77,61 +85,93 @@ export default async function EventLandingPage({
         </div>
       </section>
 
-      {/* Plans -- the actual purchasable product(s). ProductCard was
-          imported but never rendered before this; without this
-          section there was no price or buy button on the page at all. */}
-         
-      {event.plans && event.plans.length > 0 && (
-        <section className="py-20">
-          <div className="container">
-            {/* <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
-              Get the Planner
-            </p>
-            <h2 className="mb-8 font-serif text-3xl font-bold text-[#152238]">
-              Choose your planner.
-            </h2>
+      <section className="flex flex-col gap-8 py-20 md:gap-12 md:mt-10">
+        <div className="container">
+          <h2 className="mb-5 text-2xl font-bold uppercase tracking-[0.12em] text-[#B8863B]">
+            Inside the Planner
+          </h2>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              {event.plans.map((plan) => (
-                <div key={plan.sku}>
-                  <ProductCard
-                    product={{
-                      sku: plan.sku,
-                      name: plan.name,
-                      description: plan.description,
-                      features: plan.features,
-                      price: plan.price,
-                    }}
-                  />
-                  <Link
-                    href={`/events/${event.slug}/${plan.sku}`}
-                    className="mt-3 inline-block text-[13px] font-semibold text-[#5A6472] hover:text-[#152238]"
-                  >
-                    View full details →
-                  </Link>
-                </div>
-              ))}
-            </div> */}
-
-            {/* Proof of product + objection-handling, right where the
-                buying decision happens */}
-            <div className="mt-14 grid gap-6 md:grid-cols-2">
-              <GuideExcerptCard
-                sectionLabel="SECTION 4"
-                heading={`Inside the ${event.name} Experience Planner`}
-                title="Ticket Intelligence"
-                description="Real excerpt, real labeling — this is what every page of your planner looks like."
-                callouts={[
-                  { kind: "verified", text: "Rush lines release unclaimed seats ~15–30 min before showtime." },
-                  { kind: "insight", text: "Discovery-section tickets offer the best odds-to-price ratio." },
-                  { kind: "avoid", text: "Buying from anywhere but the official ticketing platform or your official account." },
-                ]}
+          {/* Sales image */}
+          {event.saleImage && (
+            <div className="overflow-hidden rounded-lg">
+              <Image
+                src={
+                  event.saleImage.startsWith("/")
+                    ? event.saleImage
+                    : `/${event.saleImage}`
+                }
+                alt={`${event.name} Experience Planner`}
+                width={1000}
+                height={600}
+                className="h-auto w-full object-cover"
+                priority
               />
-              <MiniFaq />
+            </div>
+          )}
+        </div>
+
+
+        <div className="container">
+          <div className="max-w-3xl">
+            <h3 className="font-serif text-2xl font-bold leading-[1.07] text-black md:text-3xl">
+              Why travelers use the Ventariq {event.name} Planner
+            </h3>
+
+            <p className="mt-4 text-[17px] leading-7 text-[#3F4650]">
+              {event.description}
+            </p>
+          </div>
+        </div>
+
+   
+        <div className="container">
+          <div className="grid gap-5 md:grid-cols-3">
+            {plannerBenefits.map(
+              (benefit: string, index: number) => (
+                <div
+                  key={index}
+                  className="rounded-xl border border-black/10 bg-[#0D1420] p-6"
+                >
+                  <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-full text-white text-sm font-bold bg-[#B8863B]">
+                    ✓
+                  </div>
+
+                  <p className="text-[15px] leading-6 text-white">
+                    {benefit}
+                  </p>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+
+     
+        <div className="container">
+          <div className="rounded-2xl bg-[#0D1420] p-7 text-white md:p-10">
+            <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-xl">
+                <p className="mb-3 text-[12px] font-bold uppercase tracking-[0.12em] text-[#B8863B]">
+                  Get the Planner
+                </p>
+
+                <h3 className="font-serif text-3xl font-bold">
+                  Plan your {event.name} experience with confidence.
+                </h3>
+
+                <p className="mt-4 text-[15px] leading-6 text-[#C9C2A8]">
+                  Get the complete Ventariq planner and have the
+                  practical information you need in one place.
+                </p>
+              </div>
+
+              <div className="shrink-0">
+                <PurchaseButton sku={guideSku} />
+              </div>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+      
     </main>
   );
 }

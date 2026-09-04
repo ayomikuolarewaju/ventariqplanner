@@ -39,6 +39,7 @@ export type EventItem = {
   tagline: string;
   description: string;
   heroImage?: string;
+  saleImage?: string;
   routeItems: { code: string; label: string }[];
   locations?: Location[];
   plans: Plan[];
@@ -55,6 +56,7 @@ function mapEvent(row: any, plans: any[], locations: any[]): EventItem {
     tagline: row.tagline,
     description: row.description,
     heroImage: row.hero_image ?? undefined,
+    saleImage: row.sale_image ?? undefined,
     routeItems: row.route_items ?? [],
     plans: plans.map((p) => ({
       sku: p.sku,
