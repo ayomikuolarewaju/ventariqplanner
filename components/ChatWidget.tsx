@@ -61,7 +61,7 @@ function renderMessageContent(content: string) {
 const GREETING: Message = {
   role: "assistant",
   content:
-      "Welcome to Ventariq 👋,What can I help you find today?",
+  "Welcome to Ventariq 👋,What can I help you find today?",
 };
 
 const HANDOFF_MESSAGE: Message = {
@@ -118,6 +118,7 @@ export default function ChatWidget() {
   const [openCategory, setOpenCategory] = useState<string | null>(
     QUICK_QUESTIONS[0]?.category ?? null
   );
+  const [showQuickQuestions, setShowQuickQuestions] = useState(true);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -179,6 +180,8 @@ export default function ChatWidget() {
 
   async function sendMessage(text: string) {
     if (!text || loading) return;
+
+    setShowQuickQuestions(false);
 
     const nextMessages: Message[] = [...messages, { role: "user", content: text }];
     setMessages(nextMessages);
@@ -303,7 +306,7 @@ export default function ChatWidget() {
             {/* Quick-question accordion -- only shown before the person
                 has actually started chatting, so it doesn't clutter an
                 ongoing conversation */}
-            {messages.length === 1 && !loading && (
+            {showQuickQuestions && !loading && (
               <div className="overflow-hidden rounded-[9px] border border-[#D8D2C2] bg-white shadow-sm">
                 {QUICK_QUESTIONS.map((group) => {
                   const isOpen = openCategory === group.category;
@@ -339,6 +342,15 @@ export default function ChatWidget() {
                   );
                 })}
               </div>
+            )}
+
+            {!showQuickQuestions && !loading && messages.length > 1 && (
+              <button
+                onClick={() => setShowQuickQuestions(true)}
+                className="flex items-center gap-1.5 self-start rounded-[20px] border border-[#D8D2C2] bg-white px-3 py-1.5 text-[12px] font-semibold text-[#5A6472] transition-colors hover:border-[#B8863B] hover:text-[#152238]"
+              >
+                ← Browse quick questions
+              </button>
             )}
 
             {showLeadForm && (
