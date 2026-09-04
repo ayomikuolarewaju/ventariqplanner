@@ -5,6 +5,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import ProductCard from "@/components/ProductCard";
 import LocationCard from "@/components/LocationCard";
+import GuideExcerptCard from "@/components/GuideExcerptCard";
+import MiniFaq from "@/components/MiniFaq";
 import { getEvent } from "@/lib/events";
 
 export async function generateMetadata({
@@ -60,7 +62,7 @@ export default async function EventLandingPage({
         </div>
         <div className="container">
           {event.locations && event.locations.length > 0 && (
-            <div >
+            <div>
               <div className="grid gap-5 md:grid-cols-3">
                 {event.locations.map((location) => (
                   <LocationCard
@@ -74,6 +76,62 @@ export default async function EventLandingPage({
           )}
         </div>
       </section>
+
+      {/* Plans -- the actual purchasable product(s). ProductCard was
+          imported but never rendered before this; without this
+          section there was no price or buy button on the page at all. */}
+         
+      {event.plans && event.plans.length > 0 && (
+        <section className="py-20">
+          <div className="container">
+            {/* <p className="mb-3.5 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#8C6423]">
+              Get the Planner
+            </p>
+            <h2 className="mb-8 font-serif text-3xl font-bold text-[#152238]">
+              Choose your planner.
+            </h2>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {event.plans.map((plan) => (
+                <div key={plan.sku}>
+                  <ProductCard
+                    product={{
+                      sku: plan.sku,
+                      name: plan.name,
+                      description: plan.description,
+                      features: plan.features,
+                      price: plan.price,
+                    }}
+                  />
+                  <Link
+                    href={`/events/${event.slug}/${plan.sku}`}
+                    className="mt-3 inline-block text-[13px] font-semibold text-[#5A6472] hover:text-[#152238]"
+                  >
+                    View full details →
+                  </Link>
+                </div>
+              ))}
+            </div> */}
+
+            {/* Proof of product + objection-handling, right where the
+                buying decision happens */}
+            <div className="mt-14 grid gap-6 md:grid-cols-2">
+              <GuideExcerptCard
+                sectionLabel="SECTION 4"
+                heading={`Inside the ${event.name} Experience Planner`}
+                title="Ticket Intelligence"
+                description="Real excerpt, real labeling — this is what every page of your planner looks like."
+                callouts={[
+                  { kind: "verified", text: "Rush lines release unclaimed seats ~15–30 min before showtime." },
+                  { kind: "insight", text: "Discovery-section tickets offer the best odds-to-price ratio." },
+                  { kind: "avoid", text: "Buying from anywhere but the official ticketing platform or your official account." },
+                ]}
+              />
+              <MiniFaq />
+            </div>
+          </div>
+        </section>
+      )}
     </main>
   );
 }
