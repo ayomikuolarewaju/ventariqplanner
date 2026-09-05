@@ -3,7 +3,19 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-type Status = "loading" | "processing" | "ready-guide" | "ready-plan" | "manual-review" | "error";
+type Status =
+  | "loading"
+  | "processing"
+  | "ready-guide"
+  | "ready-plan"
+  | "manual-review"
+  | "already-claimed"
+  | "error";
+
+const SUPPORT_EMAIL = "info@stratxct.com";
+const MAX_WAIT_MS = 60_000;
+const POLL_INTERVAL_MS = 2000;
+const MAX_ATTEMPTS = Math.floor(MAX_WAIT_MS / POLL_INTERVAL_MS); // 30 attempts = 60s
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -32,6 +44,11 @@ function SuccessContent() {
 
         if (cancelled) return;
 
+        if (data.status === "already_claimed") {
+          setStatus("already-claimed");
+          return;
+        }
+
         if (data.status === "manual_review") {
           setStatus("manual-review");
           return;
@@ -48,9 +65,9 @@ function SuccessContent() {
           return;
         }
 
-        // still pending/processing -- keep polling, up to ~30s
-        if (attempts < 15) {
-          setTimeout(poll, 2000);
+        // still pending/processing -- keep polling, capped at 60s total
+        if (attempts < MAX_ATTEMPTS) {
+          setTimeout(poll, POLL_INTERVAL_MS);
         } else {
           setStatus("error");
         }
@@ -92,8 +109,8 @@ function SuccessContent() {
               Your guide is ready.
             </h1>
             <p className="mt-4 text-[15px] text-[#C9C2A8]">
-              We&apos;ve also emailed a copy — this link is valid for 30
-              minutes.
+              We&apos;ve also emailed a copy — save it now, this page
+              won&apos;t show the download again.
             </p>
             {downloadUrl ? (
               <a
@@ -125,6 +142,25 @@ function SuccessContent() {
           </>
         )}
 
+        {status === "already-claimed" && (
+          <>
+            <h1 className="font-serif text-3xl font-bold text-white">
+              Already delivered.
+            </h1>
+            <p className="mt-4 text-[15px] text-[#C9C2A8]">
+              This guide was already downloaded and emailed to you. If
+              you need it resent, contact us directly at{" "}
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="underline hover:text-white"
+              >
+                {SUPPORT_EMAIL}
+              </a>
+              .
+            </p>
+          </>
+        )}
+
         {status === "manual-review" && (
           <>
             <h1 className="font-serif text-3xl font-bold text-white">
@@ -145,9 +181,13 @@ function SuccessContent() {
             </h1>
             <p className="mt-4 text-[15px] text-[#C9C2A8]">
               Your payment went through, but confirmation is taking
-              longer than usual. Check your email in a few minutes, or{" "}
-              <a href="/resend-guide" className="underline hover:text-white">
-                request your download link
+              longer than usual. Check your email in a few minutes, or
+              contact us at{" "}
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="underline hover:text-white"
+              >
+                {SUPPORT_EMAIL}
               </a>{" "}
               if it doesn&apos;t arrive.
             </p>
