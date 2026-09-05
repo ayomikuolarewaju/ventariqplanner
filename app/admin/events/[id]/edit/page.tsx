@@ -41,6 +41,7 @@ export default async function EditEventPage({
           tagline: event.tagline,
           description: event.description,
           heroImage: event.hero_image ?? "",
+          saleImage: event.sale_image ?? "",
           routeItems: event.route_items ?? [],
         }}
         initialPlans={(plans ?? []).map((p) => ({

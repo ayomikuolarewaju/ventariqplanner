@@ -31,6 +31,7 @@ type LocationDraft = {
   description: string;
   image: string;
   basePrice: string;
+  downloadAssetId: string;
   assetProductSku: string;
   assetCitySlug: string;
 };
@@ -45,6 +46,7 @@ type EventDraft = {
   tagline: string;
   description: string;
   heroImage: string;
+  saleImage: string;
   routeItems: { code: string; label: string }[];
 };
 
@@ -70,6 +72,7 @@ export default function EventForm({
       tagline: "",
       description: "",
       heroImage: "",
+      saleImage: "",
       routeItems: [],
     }
   );
@@ -100,7 +103,7 @@ export default function EventForm({
   function addLocation() {
     setLocations((l) => [
       ...l,
-      { slug: "", name: "", description: "", image: "", basePrice: "", assetProductSku: "", assetCitySlug: "" },
+      { slug: "", name: "", description: "", image: "", basePrice: "", downloadAssetId: "", assetProductSku: "", assetCitySlug: "" },
     ]);
   }
   function updateLocation(i: number, key: keyof LocationDraft, value: string) {
@@ -142,6 +145,7 @@ export default function EventForm({
         tagline: event.tagline,
         description: event.description,
         hero_image: event.heroImage || null,
+        sale_image: event.saleImage || null,
         route_items: event.routeItems,
       };
 
@@ -307,6 +311,13 @@ export default function EventForm({
             <input
               value={event.heroImage}
               onChange={(e) => updateEvent("heroImage", e.target.value)}
+              className="input"
+            />
+          </Field>
+          <Field label="Sale/Product Image Path (shown in 'Inside the Planner')">
+            <input
+              value={event.saleImage}
+              onChange={(e) => updateEvent("saleImage", e.target.value)}
               className="input"
             />
           </Field>

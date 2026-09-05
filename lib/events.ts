@@ -16,7 +16,7 @@ export type Plan = {
   sku: string;
   name: string;
   description: string;
-  features?: string[];
+  features: string[];
   price?: number;
 };
 
@@ -41,7 +41,7 @@ export type EventItem = {
   heroImage?: string;
   saleImage?: string;
   routeItems: { code: string; label: string }[];
-  locations?: Location[];
+  locations: Location[];
   plans: Plan[];
 };
 
@@ -82,8 +82,7 @@ export async function getEvents(): Promise<EventItem[]> {
   const { data: eventRows } = await supabase
     .from("events")
     .select("*")
-    .order( "created_at", { ascending: false });
-    
+    .order("created_at", { ascending: false });
 
   if (!eventRows) return [];
 
@@ -129,7 +128,7 @@ export async function getFeaturedEvent(): Promise<EventItem> {
 
 export async function getLocation(eventSlug: string, locationSlug: string) {
   const event = await getEvent(eventSlug);
-  const location = event?.locations?.find((l) => l.slug === locationSlug);
+  const location = event?.locations.find((l) => l.slug === locationSlug);
   return event && location ? { event, location } : null;
 }
 
