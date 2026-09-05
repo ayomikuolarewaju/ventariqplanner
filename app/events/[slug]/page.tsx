@@ -97,7 +97,7 @@ export default async function EventLandingPage({
           {event.saleImage && (
             <div className="overflow-hidden rounded-lg">
               <Image
-                src={event.saleImage.startsWith("/") ? event.saleImage : `/${event.saleImage}`}
+                src={`/${event.saleImage}`}
                 alt={`${event.name} Experience Planner`}
                 width={1000}
                 height={600}
