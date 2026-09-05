@@ -154,23 +154,21 @@ export default async function EventLandingPage({
                   practical information you need in one place.
                 </p>
               </div>
-
-              <div className="shrink-0">
-                {flagshipPlan ? (
-                  <>
-                    {flagshipPlan.price != null && (
-                      <p className="mb-2 text-right font-serif text-2xl font-bold text-[#B8863B]">
-                        ${flagshipPlan.price}
-                      </p>
-                    )}
-                    <PurchaseButton sku={flagshipPlan.sku} />
-                  </>
-                ) : (
-                  <p className="text-sm text-[#C9C2A8]">
-                    This planner isn&apos;t available for purchase yet.
-                  </p>
-                )}
+              <div className="container">
+          {event.locations && event.locations.length > 0 && (
+            <div>
+              <div className="grid gap-5 md:grid-cols-3">
+                {event.locations.map((location) => (
+                  <LocationCard
+                    key={location.slug}
+                    eventSlug={event.slug}
+                    location={location}
+                  />
+                ))}
               </div>
+            </div>
+          )}
+        </div>
             </div>
           </div>
         </div>
