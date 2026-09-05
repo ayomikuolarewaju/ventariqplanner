@@ -6,7 +6,7 @@ import type { Metadata, Viewport } from "next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
-
+import MetaPixel from "@/components/MetaPixel";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -57,10 +57,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="bg-white text-[#0D1420] font-sans antialiased">
+        <MetaPixel />
         <Navbar />
         {children}
         <Footer />
-      <ChatWidget />
+        <ChatWidget />
       </body>
     </html>
   );
