@@ -17,6 +17,41 @@ const MAX_WAIT_MS = 60_000;
 const POLL_INTERVAL_MS = 2000;
 const MAX_ATTEMPTS = Math.floor(MAX_WAIT_MS / POLL_INTERVAL_MS); // 30 attempts = 60s
 
+declare global {
+  interface Window {
+    fbq?: (...args: any[]) => void;
+  }
+}
+
+/**
+ * Client-side companion to the server-side Purchase event in the
+ * Stripe webhook. The webhook is the source of truth -- it only ever
+ * runs on confirmed payment, never on a page visit. This client fire
+ * is purely supplementary (adds browser-side signals Meta can't get
+ * server-side), uses the SAME event_id (the Stripe session id) so Meta
+ * deduplicates the two into one event, and is hard-gated by
+ * sessionStorage so it can never fire more than once for a given
+ * session -- not on refresh, not on revisiting the URL later.
+ */
+function trackPurchaseOnce(sessionId: string, amountCents?: number, currency?: string) {
+  const key = `ventariq-purchase-tracked-${sessionId}`;
+  if (sessionStorage.getItem(key)) return;
+
+  if (typeof window.fbq === "function") {
+    window.fbq(
+      "track",
+      "Purchase",
+      {
+        currency: (currency ?? "usd").toUpperCase(),
+        value: (amountCents ?? 0) / 100,
+      },
+      { eventID: sessionId }
+    );
+  }
+
+  sessionStorage.setItem(key, "1");
+}
+
 function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
@@ -57,11 +92,13 @@ function SuccessContent() {
         if (data.status === "ready" && data.kind === "instant_download") {
           setDownloadUrl(data.downloadUrl);
           setStatus("ready-guide");
+          trackPurchaseOnce(sessionId!, data.amountCents, data.currency);
           return;
         }
 
         if (data.status === "ready" && data.kind === "plan") {
           setStatus("ready-plan");
+          trackPurchaseOnce(sessionId!, data.amountCents, data.currency);
           return;
         }
 

@@ -25,7 +25,12 @@ export async function GET(req: Request) {
   }
 
   if (order.fulfillment_status === "awaiting_intake") {
-    return NextResponse.json({ status: "ready", kind: "plan" });
+    return NextResponse.json({
+      status: "ready",
+      kind: "plan",
+      amountCents: order.amount_cents,
+      currency: order.currency,
+    });
   }
 
   if (order.fulfillment_status === "failed") {
@@ -68,5 +73,7 @@ export async function GET(req: Request) {
     status: "ready",
     kind: "instant_download",
     downloadUrl: asset.asset_url,
+    amountCents: order.amount_cents,
+    currency: order.currency,
   });
 }

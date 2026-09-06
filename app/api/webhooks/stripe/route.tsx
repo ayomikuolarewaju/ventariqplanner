@@ -3,7 +3,8 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { resend } from "@/lib/resend";
+import { sendEmail } from "@/lib/mailer";
+import { sendPurchaseEvent } from "@/lib/metaConversions";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -69,29 +70,20 @@ export async function POST(req: Request) {
     const kind = metadata.kind as "plan" | "location_guide";
     const sku = metadata.sku as string;
 
-    // Look up the plan's real delivery config -- this is the source of
-    // truth, not the Stripe metadata, since it can be edited in admin
-    // without needing a new checkout session to pick up changes.
-    let deliveryType: "instant_download" | "personalized" = "personalized";
-    let assetProductSku: string | null = null;
-    let assetCitySlug: string | null = null;
+    // One direct ID lookup -- no string matching, no case sensitivity,
+    // no typos possible. Either the location/plan has a real linked
+    // asset, or it doesn't.
+    let downloadAssetId: string | null = null;
 
     if (kind === "plan") {
       const { data: plan } = await supabase
         .from("plans")
-        .select("delivery_type, asset_product_sku, asset_city_slug")
+        .select("download_asset_id")
         .eq("sku", sku)
         .maybeSingle();
 
-      if (plan) {
-        deliveryType = plan.delivery_type ?? "personalized";
-        assetProductSku = plan.asset_product_sku;
-        assetCitySlug = plan.asset_city_slug;
-      }
+      downloadAssetId = plan?.download_asset_id ?? null;
     } else if (kind === "location_guide") {
-      // look up the location's admin-configured asset mapping, rather
-      // than guessing it from the generated sku -- that guess never
-      // matches the real download_assets naming
       const { data: eventRow } = await supabase
         .from("events")
         .select("id")
@@ -101,23 +93,16 @@ export async function POST(req: Request) {
       if (eventRow) {
         const { data: location } = await supabase
           .from("event_locations")
-          .select("asset_product_sku, asset_city_slug")
+          .select("download_asset_id")
           .eq("event_id", eventRow.id)
           .eq("slug", metadata.location_slug)
           .maybeSingle();
 
-        if (location?.asset_product_sku) {
-          deliveryType = "instant_download";
-          assetProductSku = location.asset_product_sku;
-          assetCitySlug = location.asset_city_slug;
-        }
+        downloadAssetId = location?.download_asset_id ?? null;
       }
-      // if no mapping is configured, deliveryType stays "personalized"
-      // -- falls through to the intake-email path below, rather than
-      // silently failing into manual_review
     }
 
-    const fulfillmentStatus = deliveryType === "instant_download" ? "processing" : "awaiting_intake";
+    const fulfillmentStatus = downloadAssetId ? "processing" : "awaiting_intake";
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
@@ -138,18 +123,26 @@ export async function POST(req: Request) {
 
     if (orderError) throw orderError;
 
-    if (deliveryType === "instant_download" && assetProductSku) {
-      await deliverStoredAsset(supabase, {
-        order,
-        customer,
-        sku,
-        assetProductSku,
-        assetCitySlug,
+    // Server-side Purchase event -- fires only here, from a webhook
+    // Stripe only calls on genuinely confirmed payment. The
+    // existingOrder check above already guarantees this code path runs
+    // at most once per session, so this can't double-fire on Stripe's
+    // webhook retries.
+    if (session.payment_status === "paid") {
+      await sendPurchaseEvent({
+        eventId: session.id,
+        email: customer.email,
+        valueCents: session.amount_total ?? 0,
+        currency: session.currency ?? "usd",
+        eventSourceUrl: session.success_url,
       });
+    }
+
+    if (downloadAssetId) {
+      await deliverStoredAsset(supabase, { order, customer, sku, downloadAssetId });
     } else if (kind === "location_guide") {
-      // a location guide with no asset mapping configured yet -- flag
-      // for manual handling rather than sending a misleading
-      // "personalized plan" intake email
+      // no asset linked yet in admin -- flag for manual handling
+      // rather than sending a misleading intake-form email
       await supabase.from("orders").update({ fulfillment_status: "failed" }).eq("id", order.id);
       await supabase.from("fulfillment_deliveries").insert({
         order_id: order.id,
@@ -157,7 +150,7 @@ export async function POST(req: Request) {
         product_sku: sku,
         delivery_type: "instant_download",
         delivery_status: "failed",
-        delivery_note: `Location "${metadata.location_slug}" under event "${metadata.event_slug}" has no asset mapping configured in admin -- needs manual delivery.`,
+        delivery_note: `Location "${metadata.location_slug}" under event "${metadata.event_slug}" has no PDF linked in admin -- needs manual delivery.`,
       });
     } else {
       await sendIntakeEmail(supabase, { order, customer, sku });
@@ -179,35 +172,19 @@ async function deliverStoredAsset(
     order,
     customer,
     sku,
-    assetProductSku,
-    assetCitySlug,
-  }: {
-    order: any;
-    customer: any;
-    sku: string;
-    assetProductSku: string;
-    assetCitySlug: string | null;
-  }
+    downloadAssetId,
+  }: { order: any; customer: any; sku: string; downloadAssetId: string }
 ) {
-  let query = supabase
+  const { data: asset } = await supabase
     .from("download_assets")
     .select("*")
-    .eq("product_sku", assetProductSku)
+    .eq("id", downloadAssetId)
     .eq("active", true)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (assetCitySlug) {
-    query = query.eq("city_slug", assetCitySlug);
-  }
-
-  const { data: assets } = await query;
-  const asset = assets?.[0];
+    .maybeSingle();
 
   if (!asset) {
-    console.error(
-      `No active download_assets row for asset_product_sku=${assetProductSku}${assetCitySlug ? ` city_slug=${assetCitySlug}` : ""}`
-    );
+    // the linked asset was deleted or deactivated after being linked
+    console.error(`download_asset_id=${downloadAssetId} not found or inactive`);
     await supabase.from("orders").update({ fulfillment_status: "failed" }).eq("id", order.id);
     await supabase.from("fulfillment_deliveries").insert({
       order_id: order.id,
@@ -215,7 +192,7 @@ async function deliverStoredAsset(
       product_sku: sku,
       delivery_type: "instant_download",
       delivery_status: "failed",
-      delivery_note: `No matching download_assets row for ${assetProductSku}${assetCitySlug ? `/${assetCitySlug}` : ""} -- needs manual delivery.`,
+      delivery_note: `Linked asset (id: ${downloadAssetId}) not found or inactive -- needs manual delivery.`,
     });
     return;
   }
@@ -227,8 +204,7 @@ async function deliverStoredAsset(
   const buffer = Buffer.from(await response.arrayBuffer());
   const filename = asset.asset_name ? `${asset.asset_name}.pdf` : `${sku}.pdf`;
 
-  await resend.emails.send({
-    from: process.env.FROM_EMAIL || "Ventariq <info@mail.ventariq.com>",
+  await sendEmail({
     to: customer.email,
     subject: `Your ${asset.asset_name || "Ventariq"} Guide Is Ready`,
     html: `<p>Hello ${customer.full_name ?? ""},</p><p>Thank you for your purchase. Your guide is attached to this email.</p><p>Best regards,<br/>Ventariq</p>`,
@@ -237,11 +213,7 @@ async function deliverStoredAsset(
 
   await supabase
     .from("orders")
-    .update({
-      fulfillment_status: "fulfilled",
-      asset_product_sku: asset.product_sku,
-      asset_city_slug: asset.city_slug,
-    })
+    .update({ fulfillment_status: "fulfilled", download_asset_id: asset.id })
     .eq("id", order.id);
 
   await supabase.from("fulfillment_deliveries").insert({
@@ -259,11 +231,10 @@ async function sendIntakeEmail(
   supabase: ReturnType<typeof createAdminClient>,
   { order, customer, sku }: { order: any; customer: any; sku: string }
 ) {
-  const base = process.env.WEBSITE_URL || "https://ventariqplanner.netlify.app";
+  const base = process.env.WEBSITE_URL || "https://stratxct.com";
   const url = `${base}/intake?order_id=${order.id}&product_sku=${encodeURIComponent(sku)}`;
 
-  await resend.emails.send({
-    from: process.env.FROM_EMAIL || "Ventariq <info@mail.ventariq.com>",
+  await sendEmail({
     to: customer.email,
     subject: "Please Complete Your Ventariq Travel Intake Form",
     html: `<p>Hello ${customer.full_name ?? ""},</p><p>Thank you for your purchase. Your selected plan requires a few trip details before we can prepare your personalized plan.</p><p><a href="${url}">Complete your intake form here</a></p><p>Best regards,<br/>Ventariq</p>`,
