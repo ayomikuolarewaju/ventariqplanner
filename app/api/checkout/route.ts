@@ -8,6 +8,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { resolveSku } from "@/lib/events";
+import { sendMetaEvent } from "@/lib/metaConversions";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -46,14 +47,32 @@ export async function POST(req: Request) {
         },
       ],
       metadata: {
-        sku: item?.sku,
-        kind: item?.kind,
-        event_slug: item?.eventSlug ?? "",
-        location_slug: "locationSlug" in item ? item?.locationSlug ?? "" : "",
+        sku: item.sku,
+        kind: item.kind,
+        event_slug: item.eventSlug ?? "",
+        location_slug: "locationSlug" in item ? item.locationSlug ?? "" : "",
       },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/events/${item.eventSlug ?? ""}`,
     });
+
+    // Server-side companion to the client-side InitiateCheckout fired
+    // on button click -- this one only runs if a real Checkout Session
+    // was genuinely created, and uses the SAME event id the client
+    // sent, so Meta deduplicates the two. No email available yet at
+    // this point (Stripe collects it on its own page next), so this
+    // relies on IP/user-agent for match quality instead.
+    if (body.checkoutEventId) {
+      await sendMetaEvent({
+        eventName: "InitiateCheckout",
+        eventId: body.checkoutEventId,
+        valueCents: Math.round(item.price * 100),
+        currency: "usd",
+        eventSourceUrl: origin ? `${origin}/events/${item.eventSlug ?? ""}` : undefined,
+        clientIp: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
+        userAgent: req.headers.get("user-agent") ?? undefined,
+      });
+    }
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {

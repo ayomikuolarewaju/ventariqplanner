@@ -33,7 +33,12 @@ declare global {
  * sessionStorage so it can never fire more than once for a given
  * session -- not on refresh, not on revisiting the URL later.
  */
-function trackPurchaseOnce(sessionId: string, amountCents?: number, currency?: string) {
+function trackPurchaseOnce(
+  sessionId: string,
+  amountCents?: number,
+  currency?: string,
+  retriesLeft = 10
+) {
   const key = `ventariq-purchase-tracked-${sessionId}`;
   if (sessionStorage.getItem(key)) return;
 
@@ -47,9 +52,21 @@ function trackPurchaseOnce(sessionId: string, amountCents?: number, currency?: s
       },
       { eventID: sessionId }
     );
+    // only mark as tracked once it actually fired -- previously this
+    // was set unconditionally, so if fbq hadn't loaded yet the event
+    // silently never fired AND never got a chance to retry
+    sessionStorage.setItem(key, "1");
+    return;
   }
 
-  sessionStorage.setItem(key, "1");
+  // pixel script may not have finished loading yet -- retry briefly
+  // rather than giving up on the first check
+  if (retriesLeft > 0) {
+    setTimeout(
+      () => trackPurchaseOnce(sessionId, amountCents, currency, retriesLeft - 1),
+      300
+    );
+  }
 }
 
 function SuccessContent() {

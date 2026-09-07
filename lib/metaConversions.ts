@@ -1,17 +1,19 @@
 // lib/metaConversions.ts
 //
-// Server-side Meta Conversions API (CAPI) -- sends the Purchase event
-// directly from the Stripe webhook, which only ever runs on a genuinely
-// confirmed payment. This is the reliable half of the tracking; the
-// client-side pixel fire on the success page is a supplementary signal
-// only, using the same event_id so Meta deduplicates the two into one
-// event with better match quality.
+// Server-side Meta Conversions API (CAPI). Used for both Purchase
+// (from the Stripe webhook -- only runs on confirmed payment) and
+// InitiateCheckout (from /api/checkout -- only runs when a real
+// Checkout Session was actually created).
 //
 // Setup:
 //   1. Meta Events Manager -> your Pixel -> Settings -> Conversions API
 //      -> Generate Access Token
 //   2. Add to .env: META_CONVERSIONS_API_TOKEN=...
-//   3. META_PIXEL_ID should match the id used in components/MetaPixel.tsx
+//   3. For testing: Events Manager -> Test Events tab shows a code at
+//      the top -- set META_TEST_EVENT_CODE to it temporarily to see
+//      events land there in real time instead of waiting on the
+//      Overview dashboard, which can lag by hours on low volume.
+//      Remove/unset it once you're confident things work.
 
 import crypto from "crypto";
 
@@ -22,43 +24,60 @@ function hashValue(value: string) {
   return crypto.createHash("sha256").update(value.trim().toLowerCase()).digest("hex");
 }
 
-export async function sendPurchaseEvent({
+type SendEventArgs = {
+  eventName: "Purchase" | "InitiateCheckout";
+  eventId: string; // shared with the client-side fire for the same action, so Meta deduplicates
+  email?: string;
+  valueCents?: number;
+  currency?: string;
+  eventSourceUrl?: string;
+  clientIp?: string;
+  userAgent?: string;
+};
+
+export async function sendMetaEvent({
+  eventName,
   eventId,
   email,
   valueCents,
   currency,
   eventSourceUrl,
-}: {
-  eventId: string; // use the Stripe session id -- matches the client-side fire for dedup
-  email: string;
-  valueCents: number;
-  currency: string;
-  eventSourceUrl?: string;
-}) {
+  clientIp,
+  userAgent,
+}: SendEventArgs) {
   const token = process.env.META_CONVERSIONS_API_TOKEN;
   if (!token) {
-    console.error("META_CONVERSIONS_API_TOKEN not set -- skipping Purchase CAPI event");
+    console.error(`META_CONVERSIONS_API_TOKEN not set -- skipping ${eventName} CAPI event`);
     return;
   }
 
-  const payload = {
+  const userData: Record<string, any> = {};
+  if (email) userData.em = [hashValue(email)];
+  if (clientIp) userData.client_ip_address = clientIp;
+  if (userAgent) userData.client_user_agent = userAgent;
+
+  const customData: Record<string, any> =
+    valueCents != null
+      ? { currency: (currency ?? "usd").toUpperCase(), value: valueCents / 100 }
+      : {};
+
+  const payload: Record<string, any> = {
     data: [
       {
-        event_name: "Purchase",
+        event_name: eventName,
         event_time: Math.floor(Date.now() / 1000),
         event_id: eventId,
         action_source: "website",
         event_source_url: eventSourceUrl,
-        user_data: {
-          em: [hashValue(email)],
-        },
-        custom_data: {
-          currency: currency.toUpperCase(),
-          value: valueCents / 100,
-        },
+        user_data: userData,
+        custom_data: customData,
       },
     ],
   };
+
+  if (process.env.META_TEST_EVENT_CODE) {
+    payload.test_event_code = process.env.META_TEST_EVENT_CODE;
+  }
 
   try {
     const res = await fetch(
@@ -70,11 +89,19 @@ export async function sendPurchaseEvent({
       }
     );
 
+    const body = await res.json();
+
     if (!res.ok) {
-      const body = await res.text();
-      console.error("Meta CAPI Purchase event failed:", res.status, body);
+      console.error(`Meta CAPI ${eventName} event failed:`, res.status, body);
+    } else {
+      console.log(`Meta CAPI ${eventName} event sent:`, JSON.stringify(body));
     }
   } catch (err: any) {
-    console.error("Meta CAPI request failed:", err.message);
+    console.error(`Meta CAPI ${eventName} request failed:`, err.message);
   }
+}
+
+// Backwards-compatible wrapper for the existing Purchase call site
+export async function sendPurchaseEvent(args: Omit<SendEventArgs, "eventName">) {
+  return sendMetaEvent({ ...args, eventName: "Purchase" });
 }
