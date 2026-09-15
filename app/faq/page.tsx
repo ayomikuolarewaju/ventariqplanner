@@ -77,6 +77,19 @@ const FAQS =[
 export default function FaqPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
+    const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
+
   return (
     <main>
       <section className="bg-[#0D1420] py-20 text-white">

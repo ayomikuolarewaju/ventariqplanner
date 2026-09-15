@@ -1,9 +1,90 @@
+// // app/api/checkout/route.ts
+// //
+// // Creates a Stripe Checkout Session priced directly from your database.
+// // No sign-in required -- Stripe's own checkout page collects the
+// // buyer's email, and the webhook creates/matches a customers row from
+// // that, exactly like the original Express backend did.
+
+// import { NextResponse } from "next/server";
+// import { stripe } from "@/lib/stripe";
+// import { resolveSku } from "@/lib/events";
+// import { sendMetaEvent } from "@/lib/metaConversions";
+
+// export async function POST(req: Request) {
+//   const body = await req.json();
+
+//   if (!body.sku) {
+//     return NextResponse.json({ error: "sku is required" }, { status: 400 });
+//   }
+
+//   const item = await resolveSku(body.sku);
+
+//   if (!item) {
+//     return NextResponse.json({ error: "Unknown product" }, { status: 404 });
+//   }
+
+//   if (item.price <= 0) {
+//     return NextResponse.json(
+//       { error: "This item has no price set yet" },
+//       { status: 400 }
+//     );
+//   }
+
+//   const origin = req.headers.get("origin") ?? process.env.WEBSITE_URL ?? "";
+
+//   try {
+//     const session = await stripe.checkout.sessions.create({
+//       mode: "payment",
+//       // no customer_email -- Stripe's checkout page collects it
+//       line_items: [
+//         {
+//           quantity: 1,
+//           price_data: {
+//             currency: "usd",
+//             unit_amount: Math.round(item.price * 100),
+//             product_data: { name: item.name },
+//           },
+//         },
+//       ],
+//       metadata: {
+//         sku: item.sku,
+//         kind: item.kind,
+//         event_slug: item.eventSlug ?? "",
+//         location_slug: "locationSlug" in item ? item.locationSlug ?? "" : "",
+//       },
+//       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+//       cancel_url: `${origin}/events/${item.eventSlug ?? ""}`,
+
+
+//     // Server-side companion to the client-side InitiateCheckout fired
+//     // on button click -- this one only runs if a real Checkout Session
+//     // was genuinely created, and uses the SAME event id the client
+//     // sent, so Meta deduplicates the two. No email available yet at
+//     // this point (Stripe collects it on its own page next), so this
+//     // relies on IP/user-agent for match quality instead.
+//     if (body.checkoutEventId) {
+//       await sendMetaEvent({
+//         eventName: "InitiateCheckout",
+//         eventId: body.checkoutEventId,
+//         valueCents: Math.round(item.price * 100),
+//         currency: "usd",
+//         eventSourceUrl: origin ? `${origin}/events/${item.eventSlug ?? ""}` : undefined,
+//         clientIp: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
+//         userAgent: req.headers.get("user-agent") ?? undefined,
+//       });
+//     }
+
+//     return NextResponse.json({ url: session.url });
+//   } catch (err: any) {
+//     console.error("Stripe session creation failed:", err.message);
+//     return NextResponse.json(
+//       { error: err.message ?? "Could not create checkout session" },
+//       { status: 500 }
+//     );
+//   }
+// }
+
 // app/api/checkout/route.ts
-//
-// Creates a Stripe Checkout Session priced directly from your database.
-// No sign-in required -- Stripe's own checkout page collects the
-// buyer's email, and the webhook creates/matches a customers row from
-// that, exactly like the original Express backend did.
 
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
@@ -11,75 +92,138 @@ import { resolveSku } from "@/lib/events";
 import { sendMetaEvent } from "@/lib/metaConversions";
 
 export async function POST(req: Request) {
-  const body = await req.json();
-
-  if (!body.sku) {
-    return NextResponse.json({ error: "sku is required" }, { status: 400 });
-  }
-
-  const item = await resolveSku(body.sku);
-
-  if (!item) {
-    return NextResponse.json({ error: "Unknown product" }, { status: 404 });
-  }
-
-  if (item.price <= 0) {
-    return NextResponse.json(
-      { error: "This item has no price set yet" },
-      { status: 400 }
-    );
-  }
-
-  const origin = req.headers.get("origin") ?? process.env.WEBSITE_URL ?? "";
-
   try {
+    const body = await req.json();
+
+    if (!body.sku) {
+      return NextResponse.json(
+        { error: "sku is required" },
+        { status: 400 }
+      );
+    }
+
+    const item = await resolveSku(body.sku);
+
+    if (!item) {
+      return NextResponse.json(
+        { error: "Unknown product" },
+        { status: 404 }
+      );
+    }
+
+    if (item.price <= 0) {
+      return NextResponse.json(
+        { error: "This item has no price set yet" },
+        { status: 400 }
+      );
+    }
+
+    const origin =
+      req.headers.get("origin") ??
+      process.env.WEBSITE_URL ??
+      "";
+
+    // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      // no customer_email -- Stripe's checkout page collects it
+
       line_items: [
         {
           quantity: 1,
           price_data: {
             currency: "usd",
             unit_amount: Math.round(item.price * 100),
-            product_data: { name: item.name },
+            product_data: {
+              name: item.name,
+            },
           },
         },
       ],
+
       metadata: {
         sku: item.sku,
         kind: item.kind,
         event_slug: item.eventSlug ?? "",
-        location_slug: "locationSlug" in item ? item.locationSlug ?? "" : "",
+        location_slug:
+          "locationSlug" in item
+            ? item.locationSlug ?? ""
+            : "",
       },
-      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/events/${item.eventSlug ?? ""}`,
+
+      success_url:
+        `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+
+      cancel_url:
+        `${origin}/events/${item.eventSlug ?? ""}`,
     });
 
-    // Server-side companion to the client-side InitiateCheckout fired
-    // on button click -- this one only runs if a real Checkout Session
-    // was genuinely created, and uses the SAME event id the client
-    // sent, so Meta deduplicates the two. No email available yet at
-    // this point (Stripe collects it on its own page next), so this
-    // relies on IP/user-agent for match quality instead.
+    console.log("✅ Stripe Checkout Session created");
+    console.log("🆔 Stripe Session:", session.id);
+
+    // --------------------------------------------------
+    // SERVER-SIDE INITIATE CHECKOUT
+    // --------------------------------------------------
+    //
+    // This uses the SAME event ID generated by the browser.
+    // Meta can therefore deduplicate the browser and server
+    // InitiateCheckout events.
+    //
     if (body.checkoutEventId) {
-      await sendMetaEvent({
-        eventName: "InitiateCheckout",
-        eventId: body.checkoutEventId,
-        valueCents: Math.round(item.price * 100),
-        currency: "usd",
-        eventSourceUrl: origin ? `${origin}/events/${item.eventSlug ?? ""}` : undefined,
-        clientIp: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
-        userAgent: req.headers.get("user-agent") ?? undefined,
-      });
+      try {
+        const clientIp =
+          req.headers
+            .get("x-forwarded-for")
+            ?.split(",")[0]
+            ?.trim();
+
+        const userAgent =
+          req.headers.get("user-agent") ?? undefined;
+
+        console.log("📊 Sending server InitiateCheckout");
+        console.log("🆔 Event ID:", body.checkoutEventId);
+        console.log("💰 Value:", item.price);
+        console.log("💱 Currency: USD");
+
+        await sendMetaEvent({
+          eventName: "InitiateCheckout",
+          eventId: body.checkoutEventId,
+          valueCents: Math.round(item.price * 100),
+          currency: "usd",
+          eventSourceUrl: origin
+            ? `${origin}/events/${item.eventSlug ?? ""}`
+            : undefined,
+          clientIp,
+          userAgent,
+        });
+
+        console.log("✅ Server InitiateCheckout sent");
+      } catch (metaError) {
+        // Don't prevent a customer from purchasing if Meta
+        // tracking happens to fail.
+        console.error(
+          "⚠️ Meta InitiateCheckout failed:",
+          metaError
+        );
+      }
     }
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({
+      url: session.url,
+    });
   } catch (err: any) {
-    console.error("Stripe session creation failed:", err.message);
+    console.error(
+      "❌ Stripe session creation failed:",
+      err?.message ?? err
+    );
+
     return NextResponse.json(
-      { error: err.message ?? "Could not create checkout session" },
+      {
+        error:
+          err?.message ??
+          "Could not create checkout session",
+      },
       { status: 500 }
     );
   }
 }
+

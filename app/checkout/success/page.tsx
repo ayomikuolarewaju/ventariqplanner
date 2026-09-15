@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import {useRouter,useSearchParams } from "next/navigation";
 
 type Status =
   | "loading"
@@ -16,6 +16,7 @@ const SUPPORT_EMAIL = "info@stratxct.com";
 const MAX_WAIT_MS = 60_000;
 const POLL_INTERVAL_MS = 2000;
 const MAX_ATTEMPTS = Math.floor(MAX_WAIT_MS / POLL_INTERVAL_MS); // 30 attempts = 60s
+const  router = useRouter();
 
 declare global {
   interface Window {
@@ -135,6 +136,18 @@ function SuccessContent() {
       cancelled = true;
     };
   }, [sessionId]);
+
+  useEffect(() => {
+    const redirectStates: Status[] = ["ready-guide", "ready-plan", "already-claimed"];
+    if (!redirectStates.includes(status)) return;
+
+    const timer = setTimeout(() => {
+      router.push("/");
+    }, 15_000);
+
+    return () => clearTimeout(timer);
+  }, [status, router]);
+
 
   return (
     <main className="flex min-h-[70vh] items-center justify-center bg-[#0D1420] px-6 py-24 text-white">
@@ -268,3 +281,6 @@ export default function CheckoutSuccessPage() {
     </Suspense>
   );
 }
+
+
+
