@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ventariq
 
-## Getting Started
+**Event Travel Intelligence** — destination guides for major events, sold as a PDF plus an in-app browsing experience.
 
-First, run the development server:
+🔗 **Live:** [ventariqplanner.netlify.app](https://ventariqplanner.netlify.app/)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Built for **StratX Solutions**, founded by Dr. Mojeed Oyeniyi. Ventariq started as a travel guide for the 2026 FIFA World Cup and has since expanded into a general platform for event-based travel guides ("Editions"), currently featuring the US Open.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What it does
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Travellers heading to a major event buy a guide — venue and location intelligence, planning help, and support — delivered as a PDF with an accompanying in-app browsing view so they don't have to leave the app to explore it.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
 
-## Learn More
+- **Editions system** — each event (US Open, and others as they're added) gets its own dedicated page with location and venue guides
+- **Guest checkout** — customers buy straight through Stripe with no sign-in required, to keep friction low
+- **Automated delivery** — PDF guide and confirmation are emailed automatically on purchase
+- **Guide recovery** — an email-based "resend my guide" page for customers who lose their delivery
+- **Admin system** — manage events, plans, locations, and per-category add-on pricing without touching code
+- **Intelligence Desk** — a content section of real travel-planning articles, using a confidence-tag callout system, each ending with a CTA back to the relevant guide
+- **AI concierge widget** — a floating chat widget (Claude-powered) on every page, answering FAQs and recommending which guide to buy
+- **SEO + PWA** — meta tags, sitemap, and installable app support
 
-To learn more about Next.js, take a look at the following resources:
+## Tech stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Framework:** Next.js (App Router), TypeScript
+- **Styling:** Tailwind CSS
+- **Backend:** Supabase (customers, products, orders, travel intake, AI plans, support tickets)
+- **Payments:** Stripe (per-product payment links)
+- **AI:** Claude API, for the on-site concierge widget
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Architecture notes
 
-## Deploy on Vercel
+- Checkout is guest-only by design — no account required to purchase, only an email
+- Products use Stripe payment links directly rather than a custom checkout backend, keeping the payment flow simple to maintain
+- Content (Intelligence Desk articles, Editions) is structured so new events can be added through the admin system rather than hardcoded
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Status
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Live and in active use by real customers.
