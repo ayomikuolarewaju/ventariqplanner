@@ -16,7 +16,7 @@ const SUPPORT_EMAIL = "info@stratxct.com";
 const MAX_WAIT_MS = 60_000;
 const POLL_INTERVAL_MS = 2000;
 const MAX_ATTEMPTS = Math.floor(MAX_WAIT_MS / POLL_INTERVAL_MS); // 30 attempts = 60s
-const  router = useRouter();
+
 
 declare global {
   interface Window {
@@ -76,6 +76,8 @@ function SuccessContent() {
 
   const [status, setStatus] = useState<Status>("loading");
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+
+  const  router = useRouter();
 
   useEffect(() => {
     if (!sessionId) {
