@@ -244,12 +244,10 @@ function SuccessContent() {
         {status === "error" && (
           <>
             <h1 className="font-serif text-3xl font-bold text-white">
-              Still working on it.
+              
             </h1>
             <p className="mt-4 text-[15px] text-[#C9C2A8]">
-              Your payment went through, but confirmation is taking
-              longer than usual. Check your email in a few minutes, or
-              contact us at{" "}
+              Check your email and spasm for your order,or contact us 
               <a
                 href={`mailto:${SUPPORT_EMAIL}`}
                 className="underline hover:text-white"
@@ -263,7 +261,7 @@ function SuccessContent() {
 
         <div className="mt-8 flex flex-wrap justify-center gap-4 border-t border-white/10 pt-6">
           <a href="/events" className="text-sm text-[#C9C2A8] hover:text-white">
-            Browse More Editions
+            Browse More Products
           </a>
           <a href="/contact" className="text-sm text-[#C9C2A8] hover:text-white">
             Contact Support
