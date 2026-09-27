@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -32,8 +32,6 @@ type LocationDraft = {
   image: string;
   basePrice: string;
   downloadAssetId: string;
-  assetProductSku: string;
-  assetCitySlug: string;
 };
 
 type EventDraft = {
@@ -77,6 +75,19 @@ export default function EventForm({
     }
   );
   const [plans, setPlans] = useState<PlanDraft[]>(initialPlans ?? []);
+
+  const [assets, setAssets] = useState<
+    { id: string; asset_name: string; product_sku: string; city_slug: string | null }[]
+  >([]);
+
+  useEffect(() => {
+    supabase
+      .from("download_assets")
+      .select("id, asset_name, product_sku, city_slug")
+      .eq("active", true)
+      .order("asset_name")
+      .then(({ data }) => setAssets(data ?? []));
+  }, []);
   const [locations, setLocations] = useState<LocationDraft[]>(
     initialLocations ?? []
   );
@@ -103,7 +114,7 @@ export default function EventForm({
   function addLocation() {
     setLocations((l) => [
       ...l,
-      { slug: "", name: "", description: "", image: "", basePrice: "", downloadAssetId: "", assetProductSku: "", assetCitySlug: "" },
+      { slug: "", name: "", description: "", image: "", basePrice: "", downloadAssetId: "" },
     ]);
   }
   function updateLocation(i: number, key: keyof LocationDraft, value: string) {
@@ -229,8 +240,7 @@ export default function EventForm({
           description: l.description,
           image: l.image || null,
           base_price: l.basePrice ? Number(l.basePrice) : 0,
-          asset_product_sku: l.assetProductSku || null,
-          asset_city_slug: l.assetCitySlug || null,
+          download_asset_id: l.downloadAssetId || null,
         };
         if (l.id) {
           const { error: locationError } = await supabase
@@ -475,21 +485,20 @@ export default function EventForm({
                     className="input"
                   />
                 </Field>
-                <Field label="Delivery: Asset Product SKU (from download_assets)">
-                  <input
-                    value={l.assetProductSku}
-                    onChange={(e) => updateLocation(i, "assetProductSku", e.target.value)}
-                    placeholder="e.g. Ventariq_US_Open_2026"
+                <Field label="Linked PDF (delivered on purchase)">
+                  <select
+                    value={l.downloadAssetId}
+                    onChange={(e) => updateLocation(i, "downloadAssetId", e.target.value)}
                     className="input"
-                  />
-                </Field>
-                <Field label="Delivery: Asset City Slug (from download_assets)">
-                  <input
-                    value={l.assetCitySlug}
-                    onChange={(e) => updateLocation(i, "assetCitySlug", e.target.value)}
-                    placeholder="e.g. us"
-                    className="input"
-                  />
+                  >
+                    <option value="">— Not linked yet —</option>
+                    {assets.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.asset_name} ({a.product_sku}
+                        {a.city_slug ? `/${a.city_slug}` : ""})
+                      </option>
+                    ))}
+                  </select>
                 </Field>
                 <Field label="Description" full>
                   <textarea
