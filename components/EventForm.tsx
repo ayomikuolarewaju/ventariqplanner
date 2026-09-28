@@ -23,6 +23,7 @@ type PlanDraft = {
   description: string;
   features: string; // newline-separated in the UI, split on save
   price: string;
+  downloadAssetId: string;
 };
 
 type LocationDraft = {
@@ -102,7 +103,14 @@ export default function EventForm({
   function addPlan() {
     setPlans((p) => [
       ...p,
-      { sku: "", name: "", description: "", features: "", price: "" },
+      {
+        sku: "",
+        name: "",
+        description: "",
+        features: "",
+        price: "",
+        downloadAssetId: "",
+      },
     ]);
   }
   function updatePlan(i: number, key: keyof PlanDraft, value: string) {
@@ -200,6 +208,7 @@ export default function EventForm({
           description: p.description,
           features: p.features.split("\n").map((f) => f.trim()).filter(Boolean),
           price: p.price ? Number(p.price) : null,
+          download_asset_id: p.downloadAssetId || null,
         };
         if (p.id) {
           const { error: planError } = await supabase
@@ -418,6 +427,20 @@ export default function EventForm({
                     onChange={(e) => updatePlan(i, "price", e.target.value)}
                     className="input"
                   />
+                </Field>
+                <Field label="Linked PDF (delivered after intake)">
+                  <select
+                    value={p.downloadAssetId}
+                    onChange={(e) => updatePlan(i, "downloadAssetId", e.target.value)}
+                    className="input"
+                  >
+                    <option value="">— No PDF linked —</option>
+                    {assets.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.asset_name} ({a.product_sku})
+                      </option>
+                    ))}
+                  </select>
                 </Field>
                 <Field label="Description" full>
                   <textarea

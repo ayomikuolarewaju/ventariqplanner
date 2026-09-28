@@ -1,5 +1,3 @@
-// app/api/orders/resend/route.ts
-
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { resend } from "@/lib/resend";
@@ -16,61 +14,63 @@ export async function POST(req: Request) {
 
   const supabase = createAdminClient();
 
-  const { data: customer } = await supabase
+  const { data: customer, error: customerError } = await supabase
     .from("customers")
     .select("id, email, full_name")
     .eq("email", email)
     .maybeSingle();
 
+  if (customerError) throw customerError;
   if (!customer) {
     return NextResponse.json({ message: GENERIC_MESSAGE });
   }
 
-  const { data: orders } = await supabase
+  const { data: orders, error: ordersError } = await supabase
     .from("orders")
-    .select("*")
+    .select("id, product_sku, download_asset_id")
     .eq("customer_id", customer.id)
     .eq("fulfillment_status", "fulfilled")
-    .not("asset_product_sku", "is", null);
+    .not("download_asset_id", "is", null);
 
+  if (ordersError) throw ordersError;
   if (!orders || orders.length === 0) {
     return NextResponse.json({ message: GENERIC_MESSAGE });
   }
 
-  const links: { name: string; url: string }[] = [];
+  const assetIds = orders
+    .map((order) => order.download_asset_id)
+    .filter((id): id is string => Boolean(id));
+  const { data: assets, error: assetsError } = await supabase
+    .from("download_assets")
+    .select("id, asset_url, asset_name")
+    .in("id", assetIds)
+    .eq("active", true);
 
-  for (const order of orders) {
-    let query = supabase
-      .from("download_assets")
-      .select("asset_url, asset_name")
-      .eq("product_sku", order.asset_product_sku)
-      .eq("active", true)
-      .order("created_at", { ascending: false })
-      .limit(1);
+  if (assetsError) throw assetsError;
 
-    if (order.asset_city_slug) {
-      query = query.eq("city_slug", order.asset_city_slug);
-    }
-
-    const { data: assets } = await query;
-    const asset = assets?.[0];
-
-    if (asset?.asset_url) {
-      links.push({ name: asset.asset_name || order.product_sku, url: asset.asset_url });
-    }
-  }
+  const assetsById = new Map((assets ?? []).map((asset) => [asset.id, asset]));
+  const links = orders.flatMap((order) => {
+    const asset = order.download_asset_id
+      ? assetsById.get(order.download_asset_id)
+      : undefined;
+    return asset?.asset_url
+      ? [{ name: asset.asset_name || order.product_sku, url: asset.asset_url }]
+      : [];
+  });
 
   if (links.length > 0) {
-    await resend.emails.send({
+    const { error: sendError } = await resend.emails.send({
       from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
       to: customer.email,
       subject: "Your Ventariq Guides",
       html: `<p>Hello ${customer.full_name ?? ""},</p><p>Here ${
         links.length === 1 ? "is your guide" : "are your guides"
       }:</p><ul>${links
-        .map((l) => `<li><a href="${l.url}">${l.name}</a></li>`)
+        .map((link) => `<li><a href="${link.url}">${link.name}</a></li>`)
         .join("")}</ul><p>Best regards,<br/>Ventariq</p>`,
     });
+
+    if (sendError) throw sendError;
   }
 
   return NextResponse.json({ message: GENERIC_MESSAGE });

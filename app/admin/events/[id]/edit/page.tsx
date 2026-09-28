@@ -51,10 +51,10 @@ export default async function EditEventPage({
           description: p.description,
           features: (p.features ?? []).join("\n"),
           price: p.price != null ? String(p.price) : "",
+          downloadAssetId: p.download_asset_id ?? "",
         }))}
         initialLocations={(locations ?? []).map((l) => ({
           id: l.id,
-          event_id:l.event_id,
           slug: l.slug,
           name: l.name,
           description: l.description,

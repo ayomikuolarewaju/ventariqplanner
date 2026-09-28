@@ -1,5 +1,3 @@
-// app/api/orders/status/route.ts
-
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
 
@@ -14,11 +12,16 @@ export async function GET(req: Request) {
 
   const supabase = createAdminClient();
 
-  const { data: order } = await supabase
+  const { data: order, error: orderError } = await supabase
     .from("orders")
     .select("*")
     .eq("stripe_checkout_session_id", sessionId)
     .maybeSingle();
+
+  if (orderError) {
+    console.error("Order status lookup failed:", orderError);
+    return NextResponse.json({ error: "Could not read order status" }, { status: 500 });
+  }
 
   if (!order) {
     return NextResponse.json({ status: "pending" });
@@ -41,9 +44,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ status: "processing" });
   }
 
-  // already shown once -- this page is a single reveal, not a
-  // reusable download button. Repeat visits (refresh, bookmark, back
-  // button) get directed to support instead of the file again.
   if (order.download_claimed_at) {
     return NextResponse.json({
       status: "already_claimed",
@@ -51,19 +51,21 @@ export async function GET(req: Request) {
     });
   }
 
-  const { data: asset } = await supabase
+  const { data: asset, error: assetError } = await supabase
     .from("download_assets")
     .select("asset_url")
     .eq("id", order.download_asset_id)
     .maybeSingle();
 
+  if (assetError) {
+    console.error("Download asset lookup failed:", assetError);
+    return NextResponse.json({ status: "manual_review" });
+  }
+
   if (!asset?.asset_url) {
     return NextResponse.json({ status: "manual_review" });
   }
 
-  // mark claimed now, at the moment it's actually handed to the
-  // browser -- not before, so a request that fails partway through
-  // doesn't burn the customer's one reveal
   await supabase
     .from("orders")
     .update({ download_claimed_at: new Date().toISOString() })

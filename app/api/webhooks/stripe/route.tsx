@@ -5,6 +5,7 @@ import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { sendEmail } from "@/lib/mailer";
 import { sendPurchaseEvent } from "@/lib/metaConversions";
+import { fetchAssetBuffer } from "@/lib/assestDelivery";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -30,13 +31,18 @@ export async function POST(req: Request) {
   const supabase = createAdminClient();
 
   try {
-    const { data: existingOrder } = await supabase
+    const { data: existingOrder, error: existingOrderError } = await supabase
       .from("orders")
-      .select("id")
+      .select("*")
       .eq("stripe_checkout_session_id", session.id)
       .maybeSingle();
 
-    if (existingOrder) {
+    if (existingOrderError) throw existingOrderError;
+
+    if (
+      existingOrder &&
+      ["fulfilled", "awaiting_intake"].includes(existingOrder.fulfillment_status)
+    ) {
       return NextResponse.json({ received: true, alreadyProcessed: true });
     }
 
@@ -76,52 +82,59 @@ export async function POST(req: Request) {
     let downloadAssetId: string | null = null;
 
     if (kind === "plan") {
-      const { data: plan } = await supabase
+      const { data: plan, error: planError } = await supabase
         .from("plans")
         .select("download_asset_id")
         .eq("sku", sku)
         .maybeSingle();
 
+      if (planError) throw planError;
       downloadAssetId = plan?.download_asset_id ?? null;
     } else if (kind === "location_guide") {
-      const { data: eventRow } = await supabase
+      const { data: eventRow, error: eventError } = await supabase
         .from("events")
         .select("id")
         .eq("slug", metadata.event_slug)
         .maybeSingle();
 
+      if (eventError) throw eventError;
+
       if (eventRow) {
-        const { data: location } = await supabase
+        const { data: location, error: locationError } = await supabase
           .from("event_locations")
           .select("download_asset_id")
           .eq("event_id", eventRow.id)
           .eq("slug", metadata.location_slug)
           .maybeSingle();
 
+        if (locationError) throw locationError;
         downloadAssetId = location?.download_asset_id ?? null;
       }
     }
 
-    const fulfillmentStatus = downloadAssetId ? "processing" : "awaiting_intake";
+    let order = existingOrder;
 
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .insert({
-        customer_id: customer.id,
-        product_sku: sku,
-        stripe_checkout_session_id: session.id,
-        stripe_payment_intent_id: session.payment_intent,
-        amount_cents: session.amount_total ?? 0,
-        currency: session.currency ?? "usd",
-        payment_status: session.payment_status ?? "paid",
-        fulfillment_status: fulfillmentStatus,
-        event_slug: metadata.event_slug || null,
-        location_slug: kind === "location_guide" ? metadata.location_slug || null : null,
-      })
-      .select("*")
-      .single();
+    if (!order) {
+      const { data: insertedOrder, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          customer_id: customer.id,
+          product_sku: sku,
+          stripe_checkout_session_id: session.id,
+          stripe_payment_intent_id: session.payment_intent,
+          amount_cents: session.amount_total ?? 0,
+          currency: session.currency ?? "usd",
+          payment_status: session.payment_status ?? "paid",
+          fulfillment_status: "processing",
+          event_slug: metadata.event_slug || null,
+          location_slug: kind === "location_guide" ? metadata.location_slug || null : null,
+        })
+        .select("*")
+        .single();
 
-    if (orderError) throw orderError;
+      if (orderError) throw orderError;
+      order = insertedOrder;
+    }
 
     // Server-side Purchase event -- fires only here, from a webhook
     // Stripe only calls on genuinely confirmed payment. The
@@ -129,13 +142,17 @@ export async function POST(req: Request) {
     // at most once per session, so this can't double-fire on Stripe's
     // webhook retries.
     if (session.payment_status === "paid") {
-      await sendPurchaseEvent({
-        eventId: session.id,
-        email: customer.email,
-        valueCents: session.amount_total ?? 0,
-        currency: session.currency ?? "usd",
-        eventSourceUrl: session.success_url,
-      });
+      try {
+        await sendPurchaseEvent({
+          eventId: session.id,
+          email: customer.email,
+          valueCents: session.amount_total ?? 0,
+          currency: session.currency ?? "usd",
+          eventSourceUrl: session.success_url,
+        });
+      } catch (metaError) {
+        console.error("Purchase conversion event failed:", metaError);
+      }
     }
 
     if (downloadAssetId) {
@@ -143,8 +160,13 @@ export async function POST(req: Request) {
     } else if (kind === "location_guide") {
       // no asset linked yet in admin -- flag for manual handling
       // rather than sending a misleading intake-form email
-      await supabase.from("orders").update({ fulfillment_status: "failed" }).eq("id", order.id);
-      await supabase.from("fulfillment_deliveries").insert({
+      const { error: failedOrderError } = await supabase
+        .from("orders")
+        .update({ fulfillment_status: "failed" })
+        .eq("id", order.id);
+      if (failedOrderError) throw failedOrderError;
+
+      const { error: deliveryError } = await supabase.from("fulfillment_deliveries").insert({
         order_id: order.id,
         customer_id: customer.id,
         product_sku: sku,
@@ -152,6 +174,7 @@ export async function POST(req: Request) {
         delivery_status: "failed",
         delivery_note: `Location "${metadata.location_slug}" under event "${metadata.event_slug}" has no PDF linked in admin -- needs manual delivery.`,
       });
+      if (deliveryError) throw deliveryError;
     } else {
       await sendIntakeEmail(supabase, { order, customer, sku });
     }
@@ -175,6 +198,15 @@ async function deliverStoredAsset(
     downloadAssetId,
   }: { order: any; customer: any; sku: string; downloadAssetId: string }
 ) {
+  const { data: priorDelivery, error: priorDeliveryError } = await supabase
+    .from("fulfillment_deliveries")
+    .select("id, delivery_status")
+    .eq("order_id", order.id)
+    .in("delivery_status", ["delivered", "sent"])
+    .maybeSingle();
+
+  if (priorDeliveryError) throw priorDeliveryError;
+
   const { data: asset } = await supabase
     .from("download_assets")
     .select("*")
@@ -197,11 +229,16 @@ async function deliverStoredAsset(
     return;
   }
 
-  const response = await fetch(asset.asset_url);
-  if (!response.ok) {
-    throw new Error(`Could not download PDF from ${asset.asset_url}. Status: ${response.status}`);
+  if (priorDelivery?.delivery_status === "delivered") {
+    const { error: recoveredOrderError } = await supabase
+      .from("orders")
+      .update({ fulfillment_status: "fulfilled", download_asset_id: asset.id })
+      .eq("id", order.id);
+    if (recoveredOrderError) throw recoveredOrderError;
+    return;
   }
-  const buffer = Buffer.from(await response.arrayBuffer());
+
+  const buffer = await fetchAssetBuffer(supabase, asset);
   const filename = asset.asset_name ? `${asset.asset_name}.pdf` : `${sku}.pdf`;
 
   await sendEmail({
@@ -211,12 +248,13 @@ async function deliverStoredAsset(
     attachments: [{ filename, content: buffer.toString("base64") }],
   });
 
-  await supabase
+  const { error: fulfilledOrderError } = await supabase
     .from("orders")
     .update({ fulfillment_status: "fulfilled", download_asset_id: asset.id })
     .eq("id", order.id);
+  if (fulfilledOrderError) throw fulfilledOrderError;
 
-  await supabase.from("fulfillment_deliveries").insert({
+  const { error: deliveryError } = await supabase.from("fulfillment_deliveries").insert({
     order_id: order.id,
     customer_id: customer.id,
     product_sku: sku,
@@ -225,6 +263,7 @@ async function deliverStoredAsset(
     delivery_note: `${asset.asset_name || sku} | ${asset.asset_url}`,
     sent_at: new Date().toISOString(),
   });
+  if (deliveryError) throw deliveryError;
 }
 
 async function sendIntakeEmail(
@@ -240,7 +279,7 @@ async function sendIntakeEmail(
     html: `<p>Hello ${customer.full_name ?? ""},</p><p>Thank you for your purchase. Your selected plan requires a few trip details before we can prepare your personalized plan.</p><p><a href="${url}">Complete your intake form here</a></p><p>Best regards,<br/>Ventariq</p>`,
   });
 
-  await supabase.from("fulfillment_deliveries").insert({
+  const { error: deliveryError } = await supabase.from("fulfillment_deliveries").insert({
     order_id: order.id,
     customer_id: customer.id,
     product_sku: sku,
@@ -249,4 +288,11 @@ async function sendIntakeEmail(
     delivery_note: url,
     sent_at: new Date().toISOString(),
   });
+  if (deliveryError) throw deliveryError;
+
+  const { error: statusError } = await supabase
+    .from("orders")
+    .update({ fulfillment_status: "awaiting_intake" })
+    .eq("id", order.id);
+  if (statusError) throw statusError;
 }

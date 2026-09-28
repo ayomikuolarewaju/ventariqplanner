@@ -12,6 +12,8 @@ type Status =
   | "already-claimed"
   | "error";
 
+export const dynamic = "force-dynamic";
+
 const SUPPORT_EMAIL = "info@stratxct.com";
 const MAX_WAIT_MS = 60_000;
 const POLL_INTERVAL_MS = 2000;

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { getFeaturedEvent } from "@/lib/events";
 
+export const dynamic = "force-dynamic";
+
 export default async function NotFound() {
   const featured = await getFeaturedEvent();
 
