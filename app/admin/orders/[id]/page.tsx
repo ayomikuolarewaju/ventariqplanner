@@ -11,6 +11,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import ResendOrderButton from "@/components/ResendOrderButton";
 
 const STATUS_META: Record<string, { label: string; className: string }> = {
@@ -75,12 +76,12 @@ export default async function OrderDetail({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const adminSupabase = createAdminClient();
   const { data: order } = await supabase
     .from("orders")
     .select(
       `
       *,
-      customers(*),
       travel_intake(*)
     `
     )
@@ -101,12 +102,16 @@ export default async function OrderDetail({
     );
   }
 
+  const { data: customer } = await adminSupabase
+    .from("customers")
+    .select("full_name, email")
+    .eq("id", order.customer_id)
+    .maybeSingle();
+
   const status = STATUS_META[order.fulfillment_status || ""] ?? {
     label: order.fulfillment_status || "Unknown",
     className: "border-white/15 bg-white/5 text-white/65",
   };
-  const customer = order.customers;
-
   return (
     <main className="container py-10">
       <Link href="/admin/orders" className="inline-flex items-center gap-2 text-sm text-white/55 transition-colors hover:text-white">

@@ -1,10 +1,10 @@
 // app/admin/orders/page.tsx
 
-import { createClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-admin";
 import OrderTable from "@/components/OrderTable";
 
 export default async function Orders() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: orders } = await supabase
     .from("orders")

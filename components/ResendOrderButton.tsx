@@ -11,6 +11,17 @@ export default function ResendOrderButton({
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [message, setMessage] = useState("");
 
+  async function parseJsonResponse(response: Response) {
+    const raw = await response.text();
+    if (!raw) return {};
+
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return { error: raw || `Request failed (${response.status})` };
+    }
+  }
+
   async function resendPlanner() {
     setState("sending");
     setMessage("");
@@ -19,10 +30,10 @@ export default function ResendOrderButton({
       const response = await fetch(`/api/admin/orders/${orderId}/resend`, {
         method: "POST",
       });
-      const data = await response.json();
+      const data = await parseJsonResponse(response);
 
       if (!response.ok) {
-        throw new Error(data.error || "Could not resend planner");
+        throw new Error(data.error || data.message || "Could not resend planner");
       }
 
       setState("sent");

@@ -163,7 +163,16 @@ export default function PurchaseButton({ sku }: { sku?: string }) {
         }),
       });
 
-      const data = await res.json();
+      const raw = await res.text();
+      let data: any = {};
+
+      if (raw) {
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          data = { error: raw || `Request failed (${res.status})` };
+        }
+      }
 
       console.log("💳 Checkout API response:", data);
 

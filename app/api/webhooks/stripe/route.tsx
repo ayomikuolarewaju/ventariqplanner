@@ -104,7 +104,7 @@ export async function POST(req: Request) {
           .from("event_locations")
           .select("download_asset_id")
           .eq("event_id", eventRow.id)
-          .eq("slug", metadata.location_slug)
+          .ilike("slug", metadata.location_slug)
           .maybeSingle();
 
         if (locationError) throw locationError;
@@ -203,16 +203,20 @@ async function deliverStoredAsset(
     .select("id, delivery_status")
     .eq("order_id", order.id)
     .in("delivery_status", ["delivered", "sent"])
+    .order("sent_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   if (priorDeliveryError) throw priorDeliveryError;
 
-  const { data: asset } = await supabase
+  const { data: asset, error: assetError } = await supabase
     .from("download_assets")
     .select("*")
     .eq("id", downloadAssetId)
     .eq("active", true)
     .maybeSingle();
+
+  if (assetError) throw assetError;
 
   if (!asset) {
     // the linked asset was deleted or deactivated after being linked

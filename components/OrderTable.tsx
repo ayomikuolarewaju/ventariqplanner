@@ -175,10 +175,11 @@ export default function OrderTable({ orders }: { orders: OrderRow[] }) {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[780px] text-left">
+          <table className="w-full min-w-[900px] text-left">
             <thead className="border-b border-white/10 bg-white/[0.025]">
               <tr className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/35">
                 <th className="px-6 py-3.5">Customer</th>
+                <th className="px-4 py-3.5">Email</th>
                 <th className="px-4 py-3.5">Product</th>
                 <th className="px-4 py-3.5">Status</th>
                 <th className="px-4 py-3.5">Placed</th>
@@ -193,10 +194,21 @@ export default function OrderTable({ orders }: { orders: OrderRow[] }) {
                       <p className="truncate text-sm font-semibold text-white">
                         {order.customers?.full_name || "Guest customer"}
                       </p>
-                      <p className="mt-1 truncate text-xs text-white/45">
-                        {order.customers?.email || "No email recorded"}
-                      </p>
                     </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    {order.customers?.email ? (
+                      <a
+                        href={`mailto:${order.customers.email}`}
+                        title={order.customers.email}
+                        className="inline-flex max-w-[220px] items-center gap-1.5 truncate text-sm text-[#d7b26b] transition-colors hover:text-white"
+                      >
+                        <Mail size={14} className="shrink-0" aria-hidden="true" />
+                        <span className="truncate">{order.customers.email}</span>
+                      </a>
+                    ) : (
+                      <span className="text-sm text-white/35">No email recorded</span>
+                    )}
                   </td>
                   <td className="px-4 py-4">
                     <p className="max-w-[220px] truncate text-sm font-medium capitalize text-white/80">

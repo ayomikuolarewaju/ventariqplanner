@@ -88,6 +88,17 @@ function SuccessContent() {
     let attempts = 0;
     let cancelled = false;
 
+    async function readJsonResponse(response: Response) {
+      const raw = await response.text();
+      if (!raw) return {};
+
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return { error: raw || `Request failed (${response.status})` };
+      }
+    }
+
     async function poll() {
       attempts += 1;
 
@@ -95,7 +106,7 @@ function SuccessContent() {
         const res = await fetch(
           `/api/orders/status?session_id=${encodeURIComponent(sessionId!)}`
         );
-        const data = await res.json();
+        const data = await readJsonResponse(res);
 
         if (cancelled) return;
 

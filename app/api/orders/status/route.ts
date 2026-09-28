@@ -66,11 +66,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ status: "manual_review" });
   }
 
-  await supabase
-    .from("orders")
-    .update({ download_claimed_at: new Date().toISOString() })
-    .eq("id", order.id);
-
   return NextResponse.json({
     status: "ready",
     kind: "instant_download",
