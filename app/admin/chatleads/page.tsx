@@ -1,4 +1,4 @@
-// app/admin/chat-leads/page.tsx
+// app/admin/chatleads/page.tsx
 
 import { createClient } from "@/lib/supabase-server";
 

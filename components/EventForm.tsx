@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -77,13 +78,13 @@ export default function EventForm({
   const [plans, setPlans] = useState<PlanDraft[]>(initialPlans ?? []);
 
   const [assets, setAssets] = useState<
-    { id: string; asset_name: string; product_sku: string; city_slug: string | null }[]
+    { id: string; asset_name: string; product_sku: string; city_slug: string | null ;asset_url:string}[]
   >([]);
 
   useEffect(() => {
     supabase
       .from("download_assets")
-      .select("id, asset_name, product_sku, city_slug")
+      .select("id, asset_name, product_sku, city_slug,asset_url")
       .eq("active", true)
       .order("asset_name")
       .then(({ data }) => setAssets(data ?? []));
@@ -495,7 +496,7 @@ export default function EventForm({
                     {assets.map((a) => (
                       <option key={a.id} value={a.id}>
                         {a.asset_name} ({a.product_sku}
-                        {a.city_slug ? `/${a.city_slug}` : ""})
+                        {a.city_slug ? `/${a.city_slug}` : ""}){a.asset_url}
                       </option>
                     ))}
                   </select>

@@ -54,6 +54,7 @@ export default async function EditEventPage({
         }))}
         initialLocations={(locations ?? []).map((l) => ({
           id: l.id,
+          event_id:l.event_id,
           slug: l.slug,
           name: l.name,
           description: l.description,
