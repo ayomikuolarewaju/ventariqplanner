@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { fetchAssetBuffer } from "@/lib/assestDelivery";
-import { sendEmail } from "@/lib/mailer";
+import { resend } from "@/lib/resend";
 
 export async function POST(
   _request: Request,
@@ -106,12 +106,15 @@ export async function POST(
     const buffer = await fetchAssetBuffer(supabase, asset);
     const filename = `${asset.asset_name || order.product_sku || "ventariq-planner"}.pdf`;
 
-    await sendEmail({
+    const { error: sendError } = await resend.emails.send({
       to: order.customers.email,
+      from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
       subject: `Your ${asset.asset_name || "Ventariq"} Planner`,
       html: `<p>Hello ${order.customers.full_name ?? ""},</p><p>Here is your Ventariq planner again.</p><p>Best regards,<br/>Ventariq</p>`,
       attachments: [{ filename, content: buffer.toString("base64") }],
     });
+
+    if (sendError) throw sendError;
 
     const { error: deliveryError } = await supabase
       .from("fulfillment_deliveries")
