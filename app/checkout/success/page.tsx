@@ -282,8 +282,11 @@ function SuccessContent() {
           <a href="/events" className="text-sm text-[#C9C2A8] hover:text-white">
             Browse More Editions
           </a>
-          <a href="/contact" className="text-sm text-[#C9C2A8] hover:text-white">
-            Contact Support
+          <a
+            href={`mailto:${SUPPORT_EMAIL}?subject=Help%20with%20my%20purchase`}
+            className="text-sm text-[#C9C2A8] hover:text-white"
+          >
+            Email Support
           </a>
         </div>
 

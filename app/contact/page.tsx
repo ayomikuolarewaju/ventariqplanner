@@ -14,7 +14,11 @@ export default function ContactPage() {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // NOTE: no backend wired yet -- see message below the code.
+    const subject = encodeURIComponent(`Message from ${form.name}`);
+    const body = encodeURIComponent(
+      `Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`
+    );
+    window.location.href = `mailto:info@stratxct.com?subject=${subject}&body=${body}`;
     setStatus("sent");
   }
 
@@ -45,10 +49,11 @@ export default function ContactPage() {
             {status === "sent" ? (
               <div className="py-10 text-center">
                 <p className="font-serif text-2xl text-[#8C6423]">
-                  Message received.
+                  Email draft opened.
                 </p>
                 <p className="mt-3 text-[#5A6472]">
-                  We typically reply within one business day.
+                  Your email app should open with your message ready. Send it
+                  there to reach us.
                 </p>
               </div>
             ) : (
