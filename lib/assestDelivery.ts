@@ -25,17 +25,28 @@ export async function resolveAssetDownloadUrl(
   }
 
   if (asset.storage_bucket && asset.storage_path) {
-    const { data, error } = await supabase.storage
-      .from(asset.storage_bucket)
-      .createSignedUrl(asset.storage_path, expiresInSeconds);
+    try {
+      const { data, error } = await supabase.storage
+        .from(asset.storage_bucket)
+        .createSignedUrl(asset.storage_path, expiresInSeconds);
 
-    if (error || !data?.signedUrl) {
+      if (error || !data?.signedUrl) {
+        throw new Error(
+          `Could not generate signed URL for ${asset.storage_bucket}/${asset.storage_path}: ${error?.message ?? "no signed URL"}`
+        );
+      }
+
+      return data.signedUrl;
+    } catch (error) {
+      if (asset.asset_url) {
+        return asset.asset_url;
+      }
       throw new Error(
-        `Could not generate signed URL for ${asset.storage_bucket}/${asset.storage_path}: ${error?.message ?? "no signed URL"}`
+        error instanceof Error
+          ? error.message
+          : "Could not generate signed asset URL and no direct asset_url is available."
       );
     }
-
-    return data.signedUrl;
   }
 
   throw new Error("Asset has neither a storage path nor an asset_url");

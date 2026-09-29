@@ -10,6 +10,28 @@ import {
   resolveAssetDownloadUrl,
 } from "@/lib/assestDelivery";
 
+async function markOrderDeliveryFailure(
+  supabase: ReturnType<typeof createAdminClient>,
+  {
+    order,
+    customer,
+    sku,
+    reason,
+  }: { order: any; customer: any; sku: string; reason: string }
+) {
+  await supabase.from("orders").update({ fulfillment_status: "failed" }).eq("id", order.id);
+
+  await supabase.from("fulfillment_deliveries").insert({
+    order_id: order.id,
+    customer_id: customer.id,
+    product_sku: sku,
+    delivery_type: "instant_download",
+    delivery_status: "failed",
+    delivery_note: reason,
+    sent_at: new Date().toISOString(),
+  });
+}
+
 export async function POST(req: Request) {
   const body = await req.text();
   const signature = req.headers.get("stripe-signature");
@@ -163,21 +185,8 @@ export async function POST(req: Request) {
     } else if (kind === "location_guide") {
       // no asset linked yet in admin -- flag for manual handling
       // rather than sending a misleading intake-form email
-      const { error: failedOrderError } = await supabase
-        .from("orders")
-        .update({ fulfillment_status: "failed" })
-        .eq("id", order.id);
-      if (failedOrderError) throw failedOrderError;
-
-      const { error: deliveryError } = await supabase.from("fulfillment_deliveries").insert({
-        order_id: order.id,
-        customer_id: customer.id,
-        product_sku: sku,
-        delivery_type: "instant_download",
-        delivery_status: "failed",
-        delivery_note: `Location "${metadata.location_slug}" under event "${metadata.event_slug}" has no PDF linked in admin -- needs manual delivery.`,
-      });
-      if (deliveryError) throw deliveryError;
+      const reason = `Location "${metadata.location_slug}" under event "${metadata.event_slug}" has no PDF linked in admin -- needs manual delivery.`;
+      await markOrderDeliveryFailure(supabase, { order, customer, sku, reason });
     } else {
       await sendIntakeEmail(supabase, { order, customer, sku });
     }
@@ -222,17 +231,9 @@ async function deliverStoredAsset(
   if (assetError) throw assetError;
 
   if (!asset) {
-    // the linked asset was deleted or deactivated after being linked
-    console.error(`download_asset_id=${downloadAssetId} not found or inactive`);
-    await supabase.from("orders").update({ fulfillment_status: "failed" }).eq("id", order.id);
-    await supabase.from("fulfillment_deliveries").insert({
-      order_id: order.id,
-      customer_id: customer.id,
-      product_sku: sku,
-      delivery_type: "instant_download",
-      delivery_status: "failed",
-      delivery_note: `Linked asset (id: ${downloadAssetId}) not found or inactive -- needs manual delivery.`,
-    });
+    const reason = `Linked asset (id: ${downloadAssetId}) not found or inactive -- needs manual delivery.`;
+    console.error(reason);
+    await markOrderDeliveryFailure(supabase, { order, customer, sku, reason });
     return;
   }
 
@@ -245,38 +246,54 @@ async function deliverStoredAsset(
     return;
   }
 
-  const buffer = await fetchAssetBuffer(supabase, asset);
-  const filename = asset.asset_name ? `${asset.asset_name}.pdf` : `${sku}.pdf`;
-  const downloadUrl = await resolveAssetDownloadUrl(supabase, asset, 60 * 60 * 24 * 7);
+  if (!asset.asset_url && !(asset.storage_bucket && asset.storage_path)) {
+    const reason = `Asset (id: ${asset.id}) has neither a public asset_url nor a storage_bucket/storage_path -- delivery cannot proceed.`;
+    console.error(reason);
+    await markOrderDeliveryFailure(supabase, { order, customer, sku, reason });
+    return;
+  }
 
-  await sendEmail({
-    to: customer.email,
-    subject: `Your ${asset.asset_name || "Ventariq"} Planner Is Ready`,
-    html: `
-      <p>Hello ${customer.full_name ?? ""},</p>
-      <p>Thank you for your purchase. Your planner is attached to this email and is also available to download here:</p>
-      <p><a href="${downloadUrl}">Download your planner</a></p>
-      <p>Best regards,<br/>Ventariq</p>
-    `,
-    attachments: [{ filename, content: buffer.toString("base64") }],
-  });
+  try {
+    const buffer = await fetchAssetBuffer(supabase, asset);
+    const filename = asset.asset_name ? `${asset.asset_name}.pdf` : `${sku}.pdf`;
+    const downloadUrl = await resolveAssetDownloadUrl(supabase, asset, 60 * 60 * 24 * 7);
 
-  const { error: fulfilledOrderError } = await supabase
-    .from("orders")
-    .update({ fulfillment_status: "fulfilled", download_asset_id: asset.id })
-    .eq("id", order.id);
-  if (fulfilledOrderError) throw fulfilledOrderError;
+    await sendEmail({
+      to: customer.email,
+      subject: `Your ${asset.asset_name || "Ventariq"} Planner Is Ready`,
+      html: `
+        <p>Hello ${customer.full_name ?? ""},</p>
+        <p>Thank you for your purchase. Your planner is attached to this email and is also available to download here:</p>
+        <p><a href="${downloadUrl}">Download your planner</a></p>
+        <p>Best regards,<br/>Ventariq</p>
+      `,
+      attachments: [{ filename, content: buffer.toString("base64") }],
+    });
 
-  const { error: deliveryError } = await supabase.from("fulfillment_deliveries").insert({
-    order_id: order.id,
-    customer_id: customer.id,
-    product_sku: sku,
-    delivery_type: "instant_download",
-    delivery_status: "delivered",
-    delivery_note: `${asset.asset_name || sku} | ${asset.asset_url}`,
-    sent_at: new Date().toISOString(),
-  });
-  if (deliveryError) throw deliveryError;
+    const { error: fulfilledOrderError } = await supabase
+      .from("orders")
+      .update({ fulfillment_status: "fulfilled", download_asset_id: asset.id })
+      .eq("id", order.id);
+    if (fulfilledOrderError) throw fulfilledOrderError;
+
+    const { error: deliveryError } = await supabase.from("fulfillment_deliveries").insert({
+      order_id: order.id,
+      customer_id: customer.id,
+      product_sku: sku,
+      delivery_type: "instant_download",
+      delivery_status: "delivered",
+      delivery_note: `${asset.asset_name || sku} | ${asset.asset_url ?? `${asset.storage_bucket}/${asset.storage_path}`}`,
+      sent_at: new Date().toISOString(),
+    });
+    if (deliveryError) throw deliveryError;
+  } catch (error) {
+    const reason =
+      error instanceof Error
+        ? `Planner delivery failed: ${error.message}`
+        : "Planner delivery failed for an unknown reason.";
+    console.error(reason);
+    await markOrderDeliveryFailure(supabase, { order, customer, sku, reason });
+  }
 }
 
 async function sendIntakeEmail(

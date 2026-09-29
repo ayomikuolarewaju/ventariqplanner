@@ -106,6 +106,16 @@ export async function POST(
       );
     }
 
+    if (!asset.asset_url && !(asset.storage_bucket && asset.storage_path)) {
+      return NextResponse.json(
+        {
+          error:
+            "This planner asset is missing its PDF URL or storage reference, so it cannot be resent.",
+        },
+        { status: 400 }
+      );
+    }
+
     const buffer = await fetchAssetBuffer(supabase, asset);
     const filename = `${asset.asset_name || order.product_sku || "ventariq-planner"}.pdf`;
     const downloadUrl = await resolveAssetDownloadUrl(supabase, asset, 60 * 60 * 24 * 7);

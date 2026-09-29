@@ -17,15 +17,25 @@
 
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 465),
-  secure: process.env.SMTP_PORT === "465", // true for port 465, false for 587/others
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
-  },
-});
+const smtpHost = process.env.SMTP_HOST;
+const smtpPort = process.env.SMTP_PORT;
+const smtpUser = process.env.SMTP_USER;
+const smtpPassword = process.env.SMTP_PASSWORD;
+
+const mailConfig =
+  smtpHost && smtpPort && smtpUser && smtpPassword
+    ? {
+        host: smtpHost,
+        port: Number(smtpPort || 465),
+        secure: smtpPort === "465", // true for port 465, false for 587/others
+        auth: {
+          user: smtpUser,
+          pass: smtpPassword,
+        },
+      }
+    : null;
+
+const transporter = mailConfig ? nodemailer.createTransport(mailConfig) : null;
 
 type Attachment = { filename: string; content: string }; // content = base64 string
 
@@ -40,15 +50,26 @@ export async function sendEmail({
   html: string;
   attachments?: Attachment[];
 }) {
-  return transporter.sendMail({
-    from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
-    to,
-    subject,
-    html,
-    attachments: attachments?.map((a) => ({
-      filename: a.filename,
-      content: a.content,
-      encoding: "base64" as const,
-    })),
-  });
+  if (!transporter) {
+    throw new Error(
+      "SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASSWORD before sending planner emails."
+    );
+  }
+
+  try {
+    return transporter.sendMail({
+      from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
+      to,
+      subject,
+      html,
+      attachments: attachments?.map((a) => ({
+        filename: a.filename,
+        content: a.content,
+        encoding: "base64" as const,
+      })),
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unknown SMTP error";
+    throw new Error(`Failed to send email to ${to}: ${message}`);
+  }
 }
