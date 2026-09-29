@@ -428,7 +428,7 @@ export default function EventForm({
                     className="input"
                   />
                 </Field>
-                <Field label="Linked PDF (delivered after intake)">
+                <Field label="Linked PDF (emailed immediately after purchase)">
                   <select
                     value={p.downloadAssetId}
                     onChange={(e) => updatePlan(i, "downloadAssetId", e.target.value)}
