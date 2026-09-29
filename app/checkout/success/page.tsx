@@ -1,309 +1,211 @@
-"use client";
-
-import { Suspense, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-
-type Status =
-  | "loading"
-  | "processing"
-  | "ready-guide"
-  | "ready-plan"
-  | "manual-review"
-  | "already-claimed"
-  | "error";
-
-export const dynamic = "force-dynamic";
+import { Check, CircleAlert } from "lucide-react";
+import StripeCheckoutSuccess from "@/components/StripeCheckoutSuccess";
+import { createAdminClient } from "@/lib/supabase-admin";
 
 const SUPPORT_EMAIL = "info@stratxct.com";
-const MAX_WAIT_MS = 60_000;
-const POLL_INTERVAL_MS = 2000;
-const MAX_ATTEMPTS = Math.floor(MAX_WAIT_MS / POLL_INTERVAL_MS); // 30 attempts = 60s
 
-declare global {
-  interface Window {
-    fbq?: (...args: any[]) => void;
+type PurchaseRecord = {
+  status: string;
+  amount: number | string;
+  currency: string;
+  downloads_used: number;
+  download_limit: number;
+  download_expires_at: string;
+  download_assets: {
+    asset_name: string | null;
+  } | null;
+};
+
+function formatAmount(amount: number | string, currency: string) {
+  const numericAmount = Number(amount);
+
+  try {
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: currency.toUpperCase(),
+    }).format(numericAmount);
+  } catch {
+    return `${currency.toUpperCase()} ${numericAmount.toLocaleString("en-NG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   }
 }
 
-/**
- * Client-side companion to the server-side Purchase event in the
- * Stripe webhook. The webhook is the source of truth -- it only ever
- * runs on confirmed payment, never on a page visit. This client fire
- * is purely supplementary (adds browser-side signals Meta can't get
- * server-side), uses the SAME event_id (the Stripe session id) so Meta
- * deduplicates the two into one event, and is hard-gated by
- * sessionStorage so it can never fire more than once for a given
- * session -- not on refresh, not on revisiting the URL later.
- */
-function trackPurchaseOnce(
-  sessionId: string,
-  amountCents?: number,
-  currency?: string,
-  retriesLeft = 10
-) {
-  const key = `ventariq-purchase-tracked-${sessionId}`;
-  if (sessionStorage.getItem(key)) return;
-
-  if (typeof window.fbq === "function") {
-    window.fbq(
-      "track",
-      "Purchase",
-      {
-        currency: (currency ?? "usd").toUpperCase(),
-        value: (amountCents ?? 0) / 100,
-      },
-      { eventID: sessionId }
-    );
-    // only mark as tracked once it actually fired -- previously this
-    // was set unconditionally, so if fbq hadn't loaded yet the event
-    // silently never fired AND never got a chance to retry
-    sessionStorage.setItem(key, "1");
-    return;
-  }
-
-  // pixel script may not have finished loading yet -- retry briefly
-  // rather than giving up on the first check
-  if (retriesLeft > 0) {
-    setTimeout(
-      () => trackPurchaseOnce(sessionId, amountCents, currency, retriesLeft - 1),
-      300
-    );
-  }
-}
-
-function SuccessContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
-
-  const [status, setStatus] = useState<Status>("loading");
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!sessionId) {
-      setStatus("error");
-      return;
-    }
-
-    let attempts = 0;
-    let cancelled = false;
-
-    async function readJsonResponse(response: Response) {
-      const raw = await response.text();
-      if (!raw) return {};
-
-      try {
-        return JSON.parse(raw);
-      } catch {
-        return { error: raw || `Request failed (${response.status})` };
-      }
-    }
-
-    async function poll() {
-      attempts += 1;
-
-      try {
-        const res = await fetch(
-          `/api/orders/status?session_id=${encodeURIComponent(sessionId!)}`
-        );
-        const data = await readJsonResponse(res);
-
-        if (cancelled) return;
-
-        if (data.status === "already_claimed") {
-          setStatus("already-claimed");
-          return;
-        }
-
-        if (data.status === "manual_review") {
-          setStatus("manual-review");
-          return;
-        }
-
-        if (data.status === "ready" && data.kind === "instant_download") {
-          setDownloadUrl(data.downloadUrl);
-          setStatus("ready-guide");
-          trackPurchaseOnce(sessionId!, data.amountCents, data.currency);
-          return;
-        }
-
-        if (data.status === "ready" && data.kind === "plan") {
-          setStatus("ready-plan");
-          trackPurchaseOnce(sessionId!, data.amountCents, data.currency);
-          return;
-        }
-
-        // still pending/processing -- keep polling, capped at 60s total
-        if (attempts < MAX_ATTEMPTS) {
-          setTimeout(poll, POLL_INTERVAL_MS);
-        } else {
-          setStatus("error");
-        }
-      } catch {
-        if (!cancelled) setStatus("error");
-      }
-    }
-
-    poll();
-    return () => {
-      cancelled = true;
-    };
-  }, [sessionId]);
-
-  // Redirect to the homepage after the outcome has been shown for a
-  // bit -- only for states where there's nothing further for the
-  // customer to do here (not while still processing, and not for
-  // manual-review/error, since those explain something they may want
-  // to read carefully or act on).
-  useEffect(() => {
-    const redirectStates: Status[] = ["ready-guide", "ready-plan", "already-claimed"];
-    if (!redirectStates.includes(status)) return;
-
-    const timer = setTimeout(() => {
-      router.push("/");
-    }, 15_000);
-
-    return () => clearTimeout(timer);
-  }, [status, router]);
-
+function MessagePage({
+  title,
+  message,
+  reference,
+}: {
+  title: string;
+  message: string;
+  reference?: string;
+}) {
   return (
-    <main className="flex min-h-[70vh] items-center justify-center bg-[#0D1420] px-6 py-24 text-white">
-      <div className="w-full max-w-md rounded-[11px] border border-white/10 bg-white/[0.03] p-8 text-center">
-        <p className="mb-3 text-[12.5px] font-bold uppercase tracking-[0.12em] text-[#B8863B]">
-          Payment Confirmed
-        </p>
-
-        {(status === "loading" || status === "processing") && (
-          <>
-            <h1 className="font-serif text-3xl font-bold text-white">
-              Preparing your guide…
-            </h1>
-            <p className="mt-4 text-[15px] text-[#C9C2A8]">
-              This usually takes a few seconds. Don&apos;t close this tab.
-            </p>
-            <div className="mx-auto mt-8 h-1 w-40 overflow-hidden rounded-full bg-white/10">
-              <div className="h-full w-1/3 animate-pulse bg-[#B8863B]" />
-            </div>
-          </>
+    <main className="flex min-h-[70vh] items-center justify-center bg-[#0D1420] px-5 py-16 text-white">
+      <section className="w-full max-w-md border border-white/10 bg-white/[0.03] px-6 py-10 text-center sm:px-8">
+        <CircleAlert className="mx-auto mb-5 h-9 w-9 text-[#B8863B]" aria-hidden="true" />
+        <h1 className="font-serif text-2xl font-bold">{title}</h1>
+        <p className="mt-4 text-sm leading-6 text-[#C9C2A8]">{message}</p>
+        {reference && (
+          <p className="mt-5 break-all font-mono text-xs text-white/60">Reference: {reference}</p>
         )}
-
-        {status === "ready-guide" && (
-          <>
-            <h1 className="font-serif text-3xl font-bold text-white">
-              Your guide is ready.
-            </h1>
-            <p className="mt-4 text-[15px] text-[#C9C2A8]">
-              We&apos;ve also emailed a copy — save it now, this page
-              won&apos;t show the download again.
-            </p>
-            {downloadUrl ? (
-              <a
-                href={downloadUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-8 inline-block rounded-[5px] bg-[#B8863B] px-7 py-3.5 text-[15px] font-bold text-[#0D1420] transition-colors hover:bg-[#c99a4d]"
-              >
-                Download Your Guide
-              </a>
-            ) : (
-              <p className="mt-6 text-sm text-[#C9C2A8]">
-                Check your email for the download link.
-              </p>
-            )}
-          </>
-        )}
-
-        {status === "ready-plan" && (
-          <>
-            <h1 className="font-serif text-3xl font-bold text-white">
-              Check your inbox.
-            </h1>
-            <p className="mt-4 text-[15px] text-[#C9C2A8]">
-              Personalized plans need a few trip details first — we&apos;ve
-              emailed a short intake form so we can build yours around
-              your actual dates and preferences.
-            </p>
-          </>
-        )}
-
-        {status === "already-claimed" && (
-          <>
-            <h1 className="font-serif text-3xl font-bold text-white">
-              Already delivered.
-            </h1>
-            <p className="mt-4 text-[15px] text-[#C9C2A8]">
-              This guide was already downloaded and emailed to you. If
-              you need it resent, contact us directly at{" "}
-              <a
-                href={`mailto:${SUPPORT_EMAIL}`}
-                className="underline hover:text-white"
-              >
-                {SUPPORT_EMAIL}
-              </a>
-              .
-            </p>
-          </>
-        )}
-
-        {status === "manual-review" && (
-          <>
-            <h1 className="font-serif text-3xl font-bold text-white">
-              Almost there.
-            </h1>
-            <p className="mt-4 text-[15px] text-[#C9C2A8]">
-              Your payment went through, but we need to prepare your
-              guide by hand. We&apos;ll email it to you shortly — no
-              action needed from you.
-            </p>
-          </>
-        )}
-
-        {status === "error" && (
-          <>
-            <h1 className="font-serif text-3xl font-bold text-white">
-              Still working on it.
-            </h1>
-            <p className="mt-4 text-[15px] text-[#C9C2A8]">
-              Your payment went through, but confirmation is taking
-              longer than usual. Check your email in a few minutes, or
-              contact us at{" "}
-              <a
-                href={`mailto:${SUPPORT_EMAIL}`}
-                className="underline hover:text-white"
-              >
-                {SUPPORT_EMAIL}
-              </a>{" "}
-              if it doesn&apos;t arrive.
-            </p>
-          </>
-        )}
-
-        <div className="mt-8 flex flex-wrap justify-center gap-4 border-t border-white/10 pt-6">
-          <a href="/events" className="text-sm text-[#C9C2A8] hover:text-white">
-            Browse More Editions
-          </a>
-          <a
-            href={`mailto:${SUPPORT_EMAIL}?subject=Help%20with%20my%20purchase`}
-            className="text-sm text-[#C9C2A8] hover:text-white"
-          >
-            Email Support
-          </a>
-        </div>
-
-        {(status === "ready-guide" || status === "ready-plan" || status === "already-claimed") && (
-          <p className="mt-5 text-[12px] text-white/30">
-            Taking you back to the homepage shortly…
-          </p>
-        )}
-      </div>
+        <a
+          href={`mailto:${SUPPORT_EMAIL}`}
+          className="mt-7 inline-block text-sm text-[#C9C2A8] underline underline-offset-4 hover:text-white"
+        >
+          Contact support
+        </a>
+      </section>
     </main>
   );
 }
 
-export default function CheckoutSuccessPage() {
+export default async function CheckoutSuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    ref?: string | string[];
+    session_id?: string | string[];
+    download?: string | string[];
+  }>;
+}) {
+  const params = await searchParams;
+  const reference = params.ref;
+
+  if (typeof reference !== "string" || !reference.trim()) {
+    if (params.session_id) return <StripeCheckoutSuccess />;
+
+    return (
+      <MessagePage
+        title="Missing payment reference"
+        message="We couldn’t find a payment reference in this link. Check your receipt or contact support."
+      />
+    );
+  }
+
+  const supabaseAdmin = createAdminClient();
+  const { data, error } = await supabaseAdmin
+    .from("purchases")
+    .select("status, amount, currency, downloads_used, download_limit, download_expires_at, download_assets(asset_name)")
+    .eq("payment_reference", reference)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Purchase confirmation lookup failed:", error);
+    return (
+      <MessagePage
+        title="Payment details unavailable"
+        message="We couldn’t load this payment right now. Please try again shortly or contact support."
+        reference={reference}
+      />
+    );
+  }
+
+  if (!data) {
+    return (
+      <MessagePage
+        title="Payment not found"
+        message="We couldn’t find a payment with this reference. Check your receipt or contact support."
+        reference={reference}
+      />
+    );
+  }
+
+  const purchase = data as unknown as PurchaseRecord;
+
+  if (purchase.status !== "success") {
+    return (
+      <MessagePage
+        title={purchase.status === "failed" ? "Payment not confirmed" : "Confirming your payment"}
+        message={
+          purchase.status === "failed"
+            ? "This payment was not completed. Contact support if you believe this is an error."
+            : "Your payment is still being confirmed. Refresh this page in a moment to check again."
+        }
+        reference={reference}
+      />
+    );
+  }
+
+  const asset = purchase.download_assets;
+  const downloadCount = Math.max(0, purchase.download_limit - purchase.downloads_used);
+  const canDownload = downloadCount > 0;
+  const formattedAmount = formatAmount(purchase.amount, purchase.currency);
+  const downloadWasLimited = params.download === "limit";
+  const downloadWasUnavailable = params.download === "unavailable";
+
   return (
-    <Suspense fallback={null}>
-      <SuccessContent />
-    </Suspense>
+    <main className="flex min-h-[70vh] items-center justify-center bg-[#0D1420] px-5 py-16 text-white">
+      <section className="w-full max-w-md border border-white/10 bg-white/[0.03] px-6 py-9 sm:px-8">
+        <div className="mx-auto mb-6 flex h-[68px] w-[68px] items-center justify-center rounded-full border-2 border-[#B8863B] text-[#B8863B]">
+          <Check className="h-8 w-8" strokeWidth={2.5} aria-hidden="true" />
+        </div>
+        <p className="mb-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-[#B8863B]">
+          Payment confirmed
+        </p>
+        <h1 className="text-center font-serif text-2xl font-bold">Your guide is ready</h1>
+        <p className="mt-3 text-center text-sm leading-6 text-[#C9C2A8]">
+          Your payment was received. Download your PDF below.
+        </p>
+
+        <dl className="mt-8 divide-y divide-white/10 border-y border-white/10 text-sm">
+          <div className="flex justify-between gap-4 py-3">
+            <dt className="text-[#C9C2A8]">{asset?.asset_name || "Your guide"}</dt>
+            <dd className="shrink-0">{formattedAmount}</dd>
+          </div>
+          <div className="flex justify-between gap-4 py-3">
+            <dt className="text-[#C9C2A8]">Reference</dt>
+            <dd className="break-all text-right font-mono text-xs">{reference}</dd>
+          </div>
+          <div className="flex justify-between gap-4 py-3 font-medium">
+            <dt>Paid</dt>
+            <dd>{formattedAmount}</dd>
+          </div>
+        </dl>
+
+        {downloadWasLimited ? (
+          <p className="mt-6 text-center text-sm leading-6 text-[#C9C2A8]">
+            Your download limit has been reached or access has expired. Contact support and include your payment reference if you need more access.
+          </p>
+        ) : downloadWasUnavailable ? (
+          <p className="mt-6 text-center text-sm leading-6 text-[#C9C2A8]">
+            We couldn&apos;t prepare your download. Contact support and include your payment reference.
+          </p>
+        ) : canDownload ? (
+          <a
+            href={`/api/download/${encodeURIComponent(reference)}`}
+            className="mt-6 block w-full bg-[#B8863B] px-6 py-3.5 text-center text-sm font-bold text-[#0D1420] transition-colors hover:bg-[#c99a4d]"
+          >
+            Download your PDF
+          </a>
+        ) : (
+          <p className="mt-6 text-center text-sm leading-6 text-[#C9C2A8]">
+            All download authorizations have been used. Contact support and include your payment reference if you need more access.
+          </p>
+        )}
+
+        {!downloadWasLimited && !downloadWasUnavailable && canDownload && (
+          <p className="mt-3 text-center text-xs text-white/45">
+            {downloadCount} download {downloadCount === 1 ? "authorization" : "authorizations"} remaining. Access expires {new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(purchase.download_expires_at))}.
+          </p>
+        )}
+
+        <p className="mt-5 text-center text-xs leading-5 text-white/50">
+          Lost your link? <a href="/resend-guide" className="text-[#C9C2A8] underline underline-offset-2 hover:text-white">Email a fresh link</a>. Need more download access? Contact support.
+        </p>
+
+        <p className="mt-3 text-center text-xs leading-5 text-white/50">
+          Need help with your purchase?{" "}
+          <a
+            href={`mailto:${SUPPORT_EMAIL}?subject=Help%20with%20payment%20${encodeURIComponent(reference)}`}
+            className="text-[#C9C2A8] underline underline-offset-2 hover:text-white"
+          >
+            Contact support
+          </a>
+          .
+        </p>
+      </section>
+    </main>
   );
 }

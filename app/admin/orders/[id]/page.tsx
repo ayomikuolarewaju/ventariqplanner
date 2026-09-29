@@ -13,6 +13,7 @@ import {
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
 import ResendOrderButton from "@/components/ResendOrderButton";
+import ResetPurchaseDownloadsButton from "@/components/ResetPurchaseDownloadsButton";
 
 const STATUS_META: Record<string, { label: string; className: string }> = {
   fulfilled: {
@@ -108,6 +109,14 @@ export default async function OrderDetail({
     .eq("id", order.customer_id)
     .maybeSingle();
 
+  const { data: purchase } = order.stripe_checkout_session_id
+    ? await adminSupabase
+        .from("purchases")
+        .select("id, downloads_used, download_limit, download_expires_at")
+        .eq("payment_reference", order.stripe_checkout_session_id)
+        .maybeSingle()
+    : { data: null };
+
   const status = STATUS_META[order.fulfillment_status || ""] ?? {
     label: order.fulfillment_status || "Unknown",
     className: "border-white/15 bg-white/5 text-white/65",
@@ -164,6 +173,16 @@ export default async function OrderDetail({
           <div className="mt-7 border-t border-white/10 pt-5">
             <p className="text-xs leading-5 text-white/45">Resend attempts are available for every order state. The action will explain if a downloadable planner is not linked.</p>
           </div>
+          {purchase && (
+            <div className="mt-5 space-y-4 border-t border-white/10 pt-5">
+              <DetailItem
+                icon={FileText}
+                label="Download authorizations"
+                value={`${Math.max(0, purchase.download_limit - purchase.downloads_used)} of ${purchase.download_limit} remaining; expires ${formatDate(purchase.download_expires_at)}`}
+              />
+              <ResetPurchaseDownloadsButton purchaseId={purchase.id} />
+            </div>
+          )}
         </section>
       </div>
 

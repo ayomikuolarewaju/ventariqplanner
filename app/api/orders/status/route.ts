@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { resolveAssetDownloadUrl } from "@/lib/assestDelivery";
 
 const SUPPORT_EMAIL = "info@stratxct.com";
 
@@ -52,33 +51,11 @@ export async function GET(req: Request) {
     });
   }
 
-  const { data: asset, error: assetError } = await supabase
-    .from("download_assets")
-    .select("id, asset_name, asset_url, storage_bucket, storage_path")
-    .eq("id", order.download_asset_id)
-    .maybeSingle();
-
-  if (assetError) {
-    console.error("Download asset lookup failed:", assetError);
-    return NextResponse.json({ status: "manual_review" });
-  }
-
-  if (!asset) {
-    return NextResponse.json({ status: "manual_review" });
-  }
-
-  try {
-    const downloadUrl = await resolveAssetDownloadUrl(supabase, asset, 60 * 60 * 24 * 7);
-
-    return NextResponse.json({
-      status: "ready",
-      kind: "instant_download",
-      downloadUrl,
-      amountCents: order.amount_cents,
-      currency: order.currency,
-    });
-  } catch (error) {
-    console.error("Could not resolve planner download URL:", error);
-    return NextResponse.json({ status: "manual_review" });
-  }
+  return NextResponse.json({
+    status: "ready",
+    kind: "instant_download",
+    downloadUrl: `/api/download/${encodeURIComponent(sessionId)}`,
+    amountCents: order.amount_cents,
+    currency: order.currency,
+  });
 }

@@ -25,38 +25,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: GENERIC_MESSAGE });
   }
 
-  const { data: orders, error: ordersError } = await supabase
-    .from("orders")
-    .select("id, product_sku, download_asset_id")
-    .eq("customer_id", customer.id)
-    .eq("fulfillment_status", "fulfilled")
-    .not("download_asset_id", "is", null);
+  const { data: purchases, error: purchasesError } = await supabase
+    .from("purchases")
+    .select("payment_reference, downloads_used, download_limit, download_expires_at, download_assets(asset_name)")
+    .eq("buyer_id", customer.id)
+    .eq("status", "success")
+    .gt("download_expires_at", new Date().toISOString());
 
-  if (ordersError) throw ordersError;
-  if (!orders || orders.length === 0) {
+  if (purchasesError) throw purchasesError;
+  if (!purchases || purchases.length === 0) {
     return NextResponse.json({ message: GENERIC_MESSAGE });
   }
 
-  const assetIds = orders
-    .map((order) => order.download_asset_id)
-    .filter((id): id is string => Boolean(id));
-  const { data: assets, error: assetsError } = await supabase
-    .from("download_assets")
-    .select("id, asset_url, asset_name")
-    .in("id", assetIds)
-    .eq("active", true);
-
-  if (assetsError) throw assetsError;
-
-  const assetsById = new Map((assets ?? []).map((asset) => [asset.id, asset]));
-  const links = orders.flatMap((order) => {
-    const asset = order.download_asset_id
-      ? assetsById.get(order.download_asset_id)
-      : undefined;
-    return asset?.asset_url
-      ? [{ name: asset.asset_name || order.product_sku, url: asset.asset_url }]
-      : [];
-  });
+  const links = purchases
+    .filter((purchase) => purchase.downloads_used < purchase.download_limit)
+    .map((purchase) => ({
+      name: purchase.download_assets?.[0]?.asset_name || "Your guide",
+      url: `${process.env.WEBSITE_URL || "https://stratxct.com"}/api/download/${encodeURIComponent(purchase.payment_reference)}`,
+    }));
 
   if (links.length > 0) {
     const { error: sendError } = await resend.emails.send({

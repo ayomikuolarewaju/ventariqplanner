@@ -17,7 +17,9 @@ export default function DownloadGuideButton({
     setErrorMsg("");
 
     try {
-      const res = await fetch(`/api/guides/${eventSlug}/${locationSlug}`);
+      const res = await fetch(`/api/guides/${eventSlug}/${locationSlug}`, {
+        method: "POST",
+      });
       const data = await res.json();
 
       if (!res.ok) {
@@ -25,6 +27,8 @@ export default function DownloadGuideButton({
         setErrorMsg(
           res.status === 403
             ? "Purchase this guide to download it."
+            : res.status === 429
+              ? "Your download limit has been reached. Contact support for help."
             : data.error ?? "Something went wrong."
         );
         return;

@@ -5,10 +5,6 @@ import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { sendEmail } from "@/lib/mailer";
 import { sendPurchaseEvent } from "@/lib/metaConversions";
-import {
-  fetchAssetBuffer,
-  resolveAssetDownloadUrl,
-} from "@/lib/assestDelivery";
 
 async function markOrderDeliveryFailure(
   supabase: ReturnType<typeof createAdminClient>,
@@ -161,6 +157,24 @@ export async function POST(req: Request) {
       order = insertedOrder;
     }
 
+    if (downloadAssetId && session.payment_status === "paid") {
+      const { error: purchaseError } = await supabase.from("purchases").upsert(
+        {
+          buyer_id: customer.id,
+          pdf_id: downloadAssetId,
+          payment_provider: "stripe",
+          payment_reference: session.id,
+          amount: (session.amount_total ?? 0) / 100,
+          currency: session.currency ?? "usd",
+          status: "success",
+          confirmed_at: new Date().toISOString(),
+        },
+        { onConflict: "payment_reference" }
+      );
+
+      if (purchaseError) throw purchaseError;
+    }
+
     // Server-side Purchase event -- fires only here, from a webhook
     // Stripe only calls on genuinely confirmed payment. The
     // existingOrder check above already guarantees this code path runs
@@ -254,20 +268,18 @@ async function deliverStoredAsset(
   }
 
   try {
-    const buffer = await fetchAssetBuffer(supabase, asset);
-    const filename = asset.asset_name ? `${asset.asset_name}.pdf` : `${sku}.pdf`;
-    const downloadUrl = await resolveAssetDownloadUrl(supabase, asset, 60 * 60 * 24 * 7);
+    const base = process.env.WEBSITE_URL || "https://stratxct.com";
+    const downloadUrl = `${base}/api/download/${encodeURIComponent(order.stripe_checkout_session_id)}`;
 
     await sendEmail({
       to: customer.email,
       subject: `Your ${asset.asset_name || "Ventariq"} Planner Is Ready`,
       html: `
         <p>Hello ${customer.full_name ?? ""},</p>
-        <p>Thank you for your purchase. Your planner is attached to this email and is also available to download here:</p>
+        <p>Thank you for your purchase. Your planner is available to download here. This link can be used up to three times within seven days, and each download authorization is valid for five minutes:</p>
         <p><a href="${downloadUrl}">Download your planner</a></p>
         <p>Best regards,<br/>Ventariq</p>
       `,
-      attachments: [{ filename, content: buffer.toString("base64") }],
     });
 
     const { error: fulfilledOrderError } = await supabase
