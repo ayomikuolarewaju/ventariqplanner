@@ -143,7 +143,7 @@ export default async function Home() {
                 Concluded.
               </h2>
               <p className="text-base text-[#5A6472]">
-                These events have wrapped, but the guides remain
+                These events have wrapped, but the planners remain
                 available — useful if you&apos;re researching how we
                 cover an event before the next edition goes live.
               </p>
@@ -213,7 +213,7 @@ export default async function Home() {
             <p className="text-base text-[#5A6472]">
               Free blogs give you an answer. We give you an answer and
               tell you exactly how much to trust it — the same four-tag
-              system runs through every guide we publish.
+              system runs through every planner we publish.
             </p>
           </div>
 
@@ -278,7 +278,7 @@ export default async function Home() {
             <MethodStep
               n="04 · Revise"
               title="Versioned, not static"
-              text="Each edition is dated and numbered, so a current guide is never confused with an outdated copy."
+              text="Each edition is dated and numbered, so a current planner is never confused with an outdated copy."
             />
           </div>
         </div>

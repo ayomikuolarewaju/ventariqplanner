@@ -39,7 +39,7 @@ export async function POST(
 
   if (!customer) {
     return NextResponse.json(
-      { error: "No completed purchase found for this guide" },
+      { error: "No completed purchase found for this planner" },
       { status: 403 }
     );
   }
@@ -54,7 +54,7 @@ export async function POST(
 
   if (!order) {
     return NextResponse.json(
-      { error: "No completed purchase found for this guide" },
+      { error: "No completed purchase found for this planner" },
       { status: 403 }
     );
   }
@@ -74,7 +74,7 @@ export async function POST(
     .maybeSingle();
 
   if (purchaseError) {
-    console.error("Guide purchase lookup failed:", purchaseError);
+    console.error("Planner purchase lookup failed:", purchaseError);
     return NextResponse.json({ error: "Could not verify purchase" }, { status: 500 });
   }
   if (!purchase) {
@@ -136,7 +136,7 @@ export async function POST(
   );
 
   if (authorizationError) {
-    console.error("Guide download authorization failed:", authorizationError);
+    console.error("Planner download authorization failed:", authorizationError);
     return NextResponse.json({ error: "Could not authorize download" }, { status: 500 });
   }
   if (!authorization?.length) {

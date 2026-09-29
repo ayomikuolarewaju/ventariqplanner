@@ -18,7 +18,7 @@ export default function HeroExcerptCard() {
         
         <p className="mb-4 text-[13.5px] text-[#5A6472]">
           Every claim, labeled by how sure we are.
-          Free blogs give you an answer. We give you an answer and tell you exactly how much to trust it — the same six-tag system runs through every guide we publish.
+          Free blogs give you an answer. We give you an answer and tell you exactly how much to trust it — the same six-tag system runs through every planner we publish.
         </p>
 
         <div className="mb-2.5 rounded-[3px] border-l-4 border-[#152238] bg-[#EAECF1] p-3 text-[12.8px] leading-[1.45]">

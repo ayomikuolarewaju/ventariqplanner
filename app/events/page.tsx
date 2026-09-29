@@ -16,7 +16,7 @@ export default async function EventsPage() {
             Current Editions
           </p>
           <h1 className="max-w-2xl font-serif text-5xl font-bold leading-[1.07] text-white">
-            Every guide we&apos;ve published.
+            Every planner we&apos;ve published.
           </h1>
         </div>
       </section>

@@ -32,7 +32,7 @@ export default async function LocationPricingPage({
       <h1 className="text-4xl font-bold mb-2">{location.name} Pricing</h1>
       <p className="mb-8 text-blue-200">
         Manage service categories and optional add-on pricing for this
-        location&apos;s guide.
+        location&apos;s planner.
       </p>
 
       <LocationPricingManager

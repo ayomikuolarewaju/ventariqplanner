@@ -1,6 +1,5 @@
-// app/resend-guide/layout.tsx
-
 import type { Metadata } from "next";
+import ResendPlannerForm from "@/components/ResendPlannerForm";
 
 export const metadata: Metadata = {
   title: "Resend My Planner",
@@ -9,6 +8,6 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function ResendGuideLayout({ children }: { children: React.ReactNode }) {
-  return children;
+export default function ResendPlannerPage() {
+  return <ResendPlannerForm />;
 }

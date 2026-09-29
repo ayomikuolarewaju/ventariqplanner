@@ -85,7 +85,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/resend-guide" className="hover:text-white">
+                <Link href="/resend-planner" className="hover:text-white">
                   Resend My Planner
                 </Link>
               </li>
@@ -113,7 +113,7 @@ export default function Footer() {
           Solutions LLC and is not affiliated with, endorsed by, or
           sponsored by the USTA, the US Open, TIFF, the Toronto
           International Film Festival, or any other organization
-          referenced in our guides. All names and marks belong to their
+          referenced in our planners. All names and marks belong to their
           respective owners.
         </p>
       </div>

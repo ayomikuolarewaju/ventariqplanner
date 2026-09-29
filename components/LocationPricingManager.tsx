@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
  * LocationPricingManager — ComfortLifeUS Admin
  *
  * Manages service_categories for one location: name + optional
- * addon_price (null = included in the base guide price). Each category
+ * addon_price (null = included in the base planner price). Each category
  * can also have its individual location_services items added inline.
  */
 
@@ -196,7 +196,7 @@ export default function LocationPricingManager({
               </label>
               <label className="block text-sm">
                 <span className="mb-1 block font-mono text-[11px] tracking-widest text-white/50">
-                  ADD-ON PRICE (USD, leave blank if included in base guide)
+                  ADD-ON PRICE (USD, leave blank if included in base planner)
                 </span>
                 <input
                   value={cat.addonPrice}

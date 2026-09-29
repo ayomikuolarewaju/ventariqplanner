@@ -17,7 +17,7 @@ export default function DownloadGuideButton({
     setErrorMsg("");
 
     try {
-      const res = await fetch(`/api/guides/${eventSlug}/${locationSlug}`, {
+      const res = await fetch(`/api/planners/${eventSlug}/${locationSlug}`, {
         method: "POST",
       });
       const data = await res.json();
@@ -26,7 +26,7 @@ export default function DownloadGuideButton({
         setStatus("error");
         setErrorMsg(
           res.status === 403
-            ? "Purchase this guide to download it."
+            ? "Purchase this planner to download it."
             : res.status === 429
               ? "Your download limit has been reached. Contact support for help."
             : data.error ?? "Something went wrong."
@@ -49,7 +49,7 @@ export default function DownloadGuideButton({
         disabled={status === "loading"}
         className="rounded-[5px] border border-[#152238]/25 px-6 py-3 text-[15px] font-semibold text-[#152238] transition-colors hover:border-[#152238] disabled:opacity-50"
       >
-        {status === "loading" ? "Preparing guide…" : "Download PDF Guide"}
+        {status === "loading" ? "Preparing planner…" : "Download PDF Planner"}
       </button>
 
       {status === "error" && (

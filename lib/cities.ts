@@ -23,7 +23,7 @@ slug:"toronto",
 name:"Toronto",
 country:"Canada",
 description:
-"Canadian host city guide including transportation and cultural information."
+"Canadian host city planner including transportation and cultural information."
 },
 
 
@@ -32,7 +32,7 @@ slug:"vancouver",
 name:"Vancouver",
 country:"Canada",
 description:
-"Visitor guide covering hotels, attractions and travel support."
+"Visitor planner covering hotels, attractions and travel support."
 }
 
 ];

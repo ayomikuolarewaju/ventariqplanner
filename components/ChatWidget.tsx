@@ -77,7 +77,7 @@ const QUICK_QUESTIONS: { category: string; questions: string[] }[] = [
     category: "What is a Ventariq Experience Planner?",
     questions: [
       "Briefly explain what the customer gets, what problems it solves, and how it differs from doing the research themselves?",
-      "How do I get my guide after I pay?",
+      "How do I get my planner after I pay?",
       "I lost my download link — what now?",
     ],
   },

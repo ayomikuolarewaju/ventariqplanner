@@ -7,7 +7,7 @@ const STEPS = ["pending", "preparing", "ready", "completed"];
 const STEP_LABELS: Record<string, string> = {
   pending: "Order Received",
   preparing: "Preparing Your Plan",
-  ready: "Guide Ready",
+  ready: "Planner Ready",
   completed: "Delivered",
 };
 

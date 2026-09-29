@@ -495,7 +495,7 @@ export default function EventForm({
                     className="input"
                   />
                 </Field>
-                <Field label="Base Guide Price (USD)">
+                <Field label="Base Planner Price (USD)">
                   <input
                     value={l.basePrice}
                     onChange={(e) => updateLocation(i, "basePrice", e.target.value)}

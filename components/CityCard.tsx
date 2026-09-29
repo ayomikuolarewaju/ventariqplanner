@@ -10,7 +10,7 @@ import { EASE_OUT } from "@/lib/motion";
  *
  * Same "ticket stub" language as the Hero: a photo half (the "boarding" side)
  * torn away from an info half (the "stub") by a dashed perforation with
- * punched notch cutouts on each side. Reinforces that this guide is the
+ * punched notch cutouts on each side. Reinforces that this planner is the
  * traveller's ticket into that city's World Cup experience.
  *
  * Expects `city` to come from lib/cities. If your City type doesn't yet
@@ -78,7 +78,7 @@ export default function CityCard({ city }: { city: City }) {
             {city.description}
           </p>
           <span className="mt-4 inline-flex items-center gap-1 font-mono text-xs tracking-widest text-[#E8002D] transition-transform group-hover:translate-x-1">
-            VIEW GUIDE →
+            VIEW PLANNER →
           </span>
         </div>
       </Link>

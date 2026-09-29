@@ -34,7 +34,7 @@ export default function ContactPage() {
           </h1>
           <p className="mt-5 max-w-xl text-[17px] text-[#C9C2A8]">
             Whether it&apos;s about a specific edition, a group trip, or
-            something the guide didn&apos;t cover — we read every
+            something the planner didn&apos;t cover — we read every
             message.
           </p>
         </div>

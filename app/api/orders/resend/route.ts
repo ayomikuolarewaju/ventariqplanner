@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase-admin";
 import { resend } from "@/lib/resend";
 
 const GENERIC_MESSAGE =
-  "If we found any guides under that email, we've sent fresh download links.";
+  "If we found any Planner under that email, we've sent fresh download links.";
 
 export async function POST(req: Request) {
   const { email } = await req.json();
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   const links = purchases
     .filter((purchase) => purchase.downloads_used < purchase.download_limit)
     .map((purchase) => ({
-      name: purchase.download_assets?.[0]?.asset_name || "Your guide",
+      name: purchase.download_assets?.[0]?.asset_name || "Your Planner",
       url: `${process.env.WEBSITE_URL || "https://stratxct.com"}/api/download/${encodeURIComponent(purchase.payment_reference)}`,
     }));
 
@@ -48,9 +48,9 @@ export async function POST(req: Request) {
     const { error: sendError } = await resend.emails.send({
       from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
       to: customer.email,
-      subject: "Your Ventariq Guides",
+      subject: "Your Ventariq Planners",
       html: `<p>Hello ${customer.full_name ?? ""},</p><p>Here ${
-        links.length === 1 ? "is your guide" : "are your guides"
+        links.length === 1 ? "is your Planner" : "are your Planners"
       }:</p><ul>${links
         .map((link) => `<li><a href="${link.url}">${link.name}</a></li>`)
         .join("")}</ul><p>Best regards,<br/>Ventariq</p>`,

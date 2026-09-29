@@ -3,10 +3,10 @@
 import { CALLOUT_META, type CalloutKind } from "@/lib/intelligence-articles";
 
 /**
- * GuideExcerptCard — Ventariq
+ * PlannerExcerptCard — Ventariq
  *
  * Proof-of-product card for event/product pages: shows a real excerpt
- * from inside the guide, using the same Verified/Insight/Avoid callout
+ * from inside the planner, using the same Verified/Insight/Avoid callout
  * system as the Intelligence Desk articles and the homepage hero. This
  * belongs on the actual purchase page, not just the homepage -- someone
  * deciding whether to buy needs to see what they're buying.

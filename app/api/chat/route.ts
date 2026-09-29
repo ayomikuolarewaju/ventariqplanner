@@ -11,7 +11,7 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-const resend = "https://stratxct.com/resend-guide";
+const resend = "https://stratxct.com/resend-planner";
 const contact = "https://stratxct.com/contact";
 const us_open = "https://stratxct.com/events/us";
 const tiff = "https://stratxct.com/events/toronto";
@@ -27,29 +27,29 @@ A: A complete Experience Planner for one event -- tickets, venue navigation, tra
 Q: How is this different from a free travel blog?
 A: Every claim is labeled by confidence: Verified, Ventariq Insight, Time Saver, Money Saver, Avoid This Mistake, or Not Yet Confirmed.
 
-Q: How do I get my guide after paying?
+Q: How do I get my planner after paying?
 A: Once payment is made, your planner will be instantly delivered to your email. No account or log in is required.
 
 Q: I lost my download link.
-A: Use "Resend My Guide" at ${resend} with the email used at checkout.
+A: Use "Resend My Planner" at ${resend} with the email used at checkout.
 
-Q: What about personalized plans (not a location guide)?
+Q: What about personalized plans (not a location planner)?
 A: We email a short intake form first, then prepare and deliver the plan by email.
 
 Q: I lost my download link — what now?
-A: Use "Resend My Guide" at ${resend} with the email used at checkout.
+A: Use "Resend My Planner" at ${resend} with the email used at checkout.
 
 Q: Group orders?
 A: Direct them to ${contact} for quote-based group coordination.
 
 Q: Refunds?
-A: All sales final once a digital guide is delivered.
+A: All sales final once a digital planner is delivered.
 
 Q: What events do you currently cover?
 A: We currently cover major events such as the US Open 2026 ${us_open}, TIFF 2026 ${tiff}, and other upcoming events.
 
 Q: Briefly explain what the customer gets, what problems it solves, and how it differs from doing the research themselves?
-A: A Ventariq Experience Planner is a ready‑made, research‑driven PDF that covers every aspect of your event: tickets, venue navigation, transit, dining, and logistics. It saves you ample time and money by providing verified, confidence‑labeled tips (Verified, Ventariq Insight, Time Saver, etc.) that a free blog can’t provide. Instead of piecing together articles, you get a single, instant‑download guide with an emailed backup—no account, no waiting, no guesswork.
+A: A Ventariq Experience Planner is a ready‑made, research‑driven PDF that covers every aspect of your event: tickets, venue navigation, transit, dining, and logistics. It saves you ample time and money by providing verified, confidence‑labeled tips (Verified, Ventariq Insight, Time Saver, etc.) that a free blog can’t provide. Instead of piecing together articles, you get a single, instant-download planner with an emailed backup—no account, no waiting, no guesswork.
 `.trim();
 
 type IncomingMessage = {
@@ -205,13 +205,13 @@ URL: /events/${event.slug}
     const systemPrompt = `
 You are the Ventariq assistant, embedded as a chat widget on ventariq.com.
 
-Ventariq, by StratX Solutions, sells "Experience Planners" -- complete, research-driven digital guides for major events.
+Ventariq, by StratX Solutions, sells "Experience Planners" -- complete, research-driven digital planners for major events.
 
 YOUR JOB:
 - Answer visitor questions.
 - Help visitors choose the right Experience Planner.
 - Explain what Ventariq offers.
-- Direct visitors to the correct guide or page.
+- Direct visitors to the correct planner or page.
 - Be helpful without inventing information.
 
 VOICE:

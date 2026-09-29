@@ -1,0 +1,1 @@
+export { POST } from "../../../guides/[eventSlug]/[locationSlug]/route";

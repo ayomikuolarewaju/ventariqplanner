@@ -132,7 +132,7 @@ function SuccessContent() {
         </p>
         {(status === "loading" || status === "processing") && (
           <>
-            <h1 className="font-serif text-3xl font-bold text-white">Preparing your guide…</h1>
+            <h1 className="font-serif text-3xl font-bold text-white">Preparing your planner…</h1>
             <p className="mt-4 text-[15px] text-[#C9C2A8]">
               This usually takes a few seconds. Don&apos;t close this tab.
             </p>
@@ -143,7 +143,7 @@ function SuccessContent() {
         )}
         {status === "ready-guide" && (
           <>
-            <h1 className="font-serif text-3xl font-bold text-white">Your guide is ready.</h1>
+            <h1 className="font-serif text-3xl font-bold text-white">Your planner is ready.</h1>
             <p className="mt-4 text-[15px] text-[#C9C2A8]">
               We&apos;ve emailed a controlled download link too. You have three download authorizations over seven days; each link is valid for five minutes.
             </p>
@@ -154,7 +154,7 @@ function SuccessContent() {
                 rel="noreferrer"
                 className="mt-8 inline-block rounded-[5px] bg-[#B8863B] px-7 py-3.5 text-[15px] font-bold text-[#0D1420] transition-colors hover:bg-[#c99a4d]"
               >
-                Download Your Guide
+                Download Your Planner
               </a>
             ) : (
               <p className="mt-6 text-sm text-[#C9C2A8]">Check your email for the download link.</p>
@@ -173,7 +173,7 @@ function SuccessContent() {
           <>
             <h1 className="font-serif text-3xl font-bold text-white">Already delivered.</h1>
             <p className="mt-4 text-[15px] text-[#C9C2A8]">
-              This guide was already downloaded and emailed to you. If you need it resent, contact us directly at{" "}
+              This planner was already downloaded and emailed to you. If you need it resent, contact us directly at{" "}
               <a href={`mailto:${SUPPORT_EMAIL}`} className="underline hover:text-white">
                 {SUPPORT_EMAIL}
               </a>
@@ -185,7 +185,7 @@ function SuccessContent() {
           <>
             <h1 className="font-serif text-3xl font-bold text-white">Almost there.</h1>
             <p className="mt-4 text-[15px] text-[#C9C2A8]">
-              Your payment went through, but we need to prepare your guide by hand. We&apos;ll email it to you shortly — no action needed from you.
+              Your payment went through, but we need to prepare your planner by hand. We&apos;ll email it to you shortly — no action needed from you.
             </p>
           </>
         )}

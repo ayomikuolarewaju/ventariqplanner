@@ -144,14 +144,14 @@ export default async function CheckoutSuccessPage({
         <p className="mb-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-[#B8863B]">
           Payment confirmed
         </p>
-        <h1 className="text-center font-serif text-2xl font-bold">Your guide is ready</h1>
+        <h1 className="text-center font-serif text-2xl font-bold">Your planner is ready</h1>
         <p className="mt-3 text-center text-sm leading-6 text-[#C9C2A8]">
-          Your payment was received. Download your PDF below.
+          Your payment was received. Download your Planner below.
         </p>
 
         <dl className="mt-8 divide-y divide-white/10 border-y border-white/10 text-sm">
           <div className="flex justify-between gap-4 py-3">
-            <dt className="text-[#C9C2A8]">{asset?.asset_name || "Your guide"}</dt>
+            <dt className="text-[#C9C2A8]">{asset?.asset_name || "Your planner"}</dt>
             <dd className="shrink-0">{formattedAmount}</dd>
           </div>
           <div className="flex justify-between gap-4 py-3">
@@ -177,7 +177,7 @@ export default async function CheckoutSuccessPage({
             href={`/api/download/${encodeURIComponent(reference)}`}
             className="mt-6 block w-full bg-[#B8863B] px-6 py-3.5 text-center text-sm font-bold text-[#0D1420] transition-colors hover:bg-[#c99a4d]"
           >
-            Download your PDF
+            Download your Planner
           </a>
         ) : (
           <p className="mt-6 text-center text-sm leading-6 text-[#C9C2A8]">
@@ -192,7 +192,7 @@ export default async function CheckoutSuccessPage({
         )}
 
         <p className="mt-5 text-center text-xs leading-5 text-white/50">
-          Lost your link? <a href="/resend-guide" className="text-[#C9C2A8] underline underline-offset-2 hover:text-white">Email a fresh link</a>. Need more download access? Contact support.
+          Lost your link? <a href="/resend-planner" className="text-[#C9C2A8] underline underline-offset-2 hover:text-white">Email a fresh link</a>. Need more download access? Contact support.
         </p>
 
         <p className="mt-3 text-center text-xs leading-5 text-white/50">

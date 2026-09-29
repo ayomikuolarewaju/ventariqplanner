@@ -102,7 +102,7 @@ export function CityGuideDocument({
   const categories = services ? Array.from(new Set(services.map((s) => s.category))) : [];
 
   return (
-    <Document title={`${cityName} — ComfortLifeUS Guide`}>
+    <Document title={`${cityName} — Ventariq Planner`}>
       {/* cover page */}
       <Page size="A4" style={styles.page}>
         {heroImage && (
@@ -121,7 +121,7 @@ export function CityGuideDocument({
             <Text style={styles.eyebrow}>{eyebrow}</Text>
             <Text style={styles.coverTitle}>{cityName ? cityName.toUpperCase() : ""}</Text>
             <Text style={[styles.coverTitle, styles.coverTitleAccent]}>
-              GUIDE
+              PLANNER
             </Text>
             <Text style={styles.coverSub}>{tagline}</Text>
           </View>
@@ -150,7 +150,7 @@ export function CityGuideDocument({
             ))}
 
           <View style={styles.footer} fixed>
-            <Text>{cityName} GUIDE</Text>
+            <Text>{cityName} PLANNER</Text>
             <Text render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
           </View>
         </Page>

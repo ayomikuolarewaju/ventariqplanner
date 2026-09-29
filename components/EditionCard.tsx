@@ -8,7 +8,7 @@ import type { EventItem } from "@/lib/events";
  *
  * Shared between the homepage and /events index. Each event is
  * presented as a single flagship "edition" — dark banner with dates,
- * white body with meta pills and a "View the guide" link.
+ * white body with meta pills and a "View the planner" link.
  */
 
 const GRADIENTS = [

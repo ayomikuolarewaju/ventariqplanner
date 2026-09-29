@@ -67,7 +67,7 @@ export default function ServiceBrowser({
                     Locked
                   </span>
                   <span className="text-xs text-[#5A6472]">
-                    Purchase the guide to unlock
+                    Purchase the planner to unlock
                   </span>
                 </div>
               )}
@@ -79,7 +79,7 @@ export default function ServiceBrowser({
       {!isUnlocked && (
         <div className="mt-8 rounded-[10px] border border-dashed border-[#D8D2C2] p-5">
           <p className="text-[13.5px] text-[#5A6472]">
-            You&apos;re seeing a preview. Purchase the full guide for
+            You&apos;re seeing a preview. Purchase the full planner for
             every service across all categories, plus the downloadable
             PDF.
           </p>

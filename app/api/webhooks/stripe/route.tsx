@@ -282,7 +282,7 @@ async function deliverStoredAsset(
       subject: `Your ${asset.asset_name || "Ventariq"} Planner Is Ready`,
       html: `
         <p>Hello ${customer.full_name ?? ""},</p>
-        <p>Thank you for your purchase. Your planner is available to download here. You have three download authorizations over seven days, and each download link is valid for five minutes:</p>
+        <p>Thank you for your purchase. Your planner is available to download here. You have three download authorizations over seven days.</p>
         <p><a href="${downloadUrl}">Download your planner</a></p>
         <p>Best regards,<br/>Ventariq</p>
       `,
