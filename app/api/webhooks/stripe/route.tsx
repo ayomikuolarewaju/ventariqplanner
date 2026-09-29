@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { sendEmail } from "@/lib/mailer";
+import { resend } from "@/lib/resend";
 import { sendPurchaseEvent } from "@/lib/metaConversions";
 
 async function markOrderDeliveryFailure(
@@ -260,27 +261,33 @@ async function deliverStoredAsset(
     return;
   }
 
-  if (!asset.asset_url && !(asset.storage_bucket && asset.storage_path)) {
-    const reason = `Asset (id: ${asset.id}) has neither a public asset_url nor a storage_bucket/storage_path -- delivery cannot proceed.`;
+  if (!asset.asset_url) {
+    const reason = `Asset (id: ${asset.id}) has no asset_url -- delivery cannot proceed.`;
     console.error(reason);
     await markOrderDeliveryFailure(supabase, { order, customer, sku, reason });
     return;
   }
 
   try {
+    if (!order.stripe_checkout_session_id) {
+      throw new Error("Order has no Stripe payment reference for its controlled download link.");
+    }
+
     const base = process.env.WEBSITE_URL || "https://stratxct.com";
     const downloadUrl = `${base}/api/download/${encodeURIComponent(order.stripe_checkout_session_id)}`;
 
-    await sendEmail({
+    const { error: emailError } = await resend.emails.send({
       to: customer.email,
+      from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
       subject: `Your ${asset.asset_name || "Ventariq"} Planner Is Ready`,
       html: `
         <p>Hello ${customer.full_name ?? ""},</p>
-        <p>Thank you for your purchase. Your planner is available to download here. This link can be used up to three times within seven days, and each download authorization is valid for five minutes:</p>
+        <p>Thank you for your purchase. Your planner is available to download here. You have three download authorizations over seven days, and each download link is valid for five minutes:</p>
         <p><a href="${downloadUrl}">Download your planner</a></p>
         <p>Best regards,<br/>Ventariq</p>
       `,
     });
+    if (emailError) throw emailError;
 
     const { error: fulfilledOrderError } = await supabase
       .from("orders")
@@ -294,7 +301,7 @@ async function deliverStoredAsset(
       product_sku: sku,
       delivery_type: "instant_download",
       delivery_status: "delivered",
-      delivery_note: `${asset.asset_name || sku} | ${asset.asset_url ?? `${asset.storage_bucket}/${asset.storage_path}`}`,
+      delivery_note: `${asset.asset_name || sku} | ${asset.id}`,
       sent_at: new Date().toISOString(),
     });
     if (deliveryError) throw deliveryError;
@@ -305,6 +312,7 @@ async function deliverStoredAsset(
         : "Planner delivery failed for an unknown reason.";
     console.error(reason);
     await markOrderDeliveryFailure(supabase, { order, customer, sku, reason });
+    throw error;
   }
 }
 
