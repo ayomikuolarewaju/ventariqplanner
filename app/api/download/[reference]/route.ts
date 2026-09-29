@@ -59,7 +59,7 @@ export async function GET(
 
   const { data: asset, error: assetError } = await supabase
     .from("download_assets")
-    .select("asset_url, asset_name, active, storage_bucket, storage_path")
+    .select("asset_url, asset_name, active")
     .eq("id", purchase.pdf_id)
     .maybeSingle();
 
@@ -68,11 +68,7 @@ export async function GET(
     return NextResponse.json({ error: "Could not prepare download" }, { status: 500 });
   }
 
-  const storageObject = asset?.storage_bucket && asset.storage_path
-    ? { bucket: asset.storage_bucket, path: asset.storage_path }
-    : asset?.asset_url
-      ? getStorageObject(asset.asset_url)
-      : null;
+  const storageObject = asset?.asset_url ? getStorageObject(asset.asset_url) : null;
   if (!asset || asset.active === false || !storageObject) {
     return redirectToReceipt(request.url, reference, "unavailable");
   }

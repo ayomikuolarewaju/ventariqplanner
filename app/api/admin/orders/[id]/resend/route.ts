@@ -89,7 +89,7 @@ export async function POST(
 
     const { data: asset, error: assetError } = await supabase
       .from("download_assets")
-      .select("id, asset_name, asset_url, storage_bucket, storage_path")
+      .select("id, asset_name, asset_url")
       .eq("id", downloadAssetId)
       .eq("active", true)
       .maybeSingle();
@@ -102,11 +102,10 @@ export async function POST(
       );
     }
 
-    if (!asset.asset_url && !(asset.storage_bucket && asset.storage_path)) {
+    if (!asset.asset_url) {
       return NextResponse.json(
         {
-          error:
-            "This planner asset is missing its PDF URL or storage reference, so it cannot be resent.",
+          error: "This planner asset has no PDF URL, so it cannot be resent.",
         },
         { status: 400 }
       );
@@ -115,6 +114,21 @@ export async function POST(
     if (!order.stripe_checkout_session_id) {
       return NextResponse.json(
         { error: "This order has no payment reference for a controlled download link" },
+        { status: 400 }
+      );
+    }
+
+    const { data: purchase, error: purchaseError } = await supabase
+      .from("purchases")
+      .select("payment_reference")
+      .eq("payment_reference", order.stripe_checkout_session_id)
+      .eq("status", "success")
+      .maybeSingle();
+
+    if (purchaseError) throw purchaseError;
+    if (!purchase) {
+      return NextResponse.json(
+        { error: "No successful purchase record exists for this order" },
         { status: 400 }
       );
     }
