@@ -5,7 +5,10 @@ import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-admin";
 import { sendEmail } from "@/lib/mailer";
 import { sendPurchaseEvent } from "@/lib/metaConversions";
-import { fetchAssetBuffer } from "@/lib/assestDelivery";
+import {
+  fetchAssetBuffer,
+  resolveAssetDownloadUrl,
+} from "@/lib/assestDelivery";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -244,11 +247,17 @@ async function deliverStoredAsset(
 
   const buffer = await fetchAssetBuffer(supabase, asset);
   const filename = asset.asset_name ? `${asset.asset_name}.pdf` : `${sku}.pdf`;
+  const downloadUrl = await resolveAssetDownloadUrl(supabase, asset, 60 * 60 * 24 * 7);
 
   await sendEmail({
     to: customer.email,
-    subject: `Your ${asset.asset_name || "Ventariq"} Guide Is Ready`,
-    html: `<p>Hello ${customer.full_name ?? ""},</p><p>Thank you for your purchase. Your guide is attached to this email.</p><p>Best regards,<br/>Ventariq</p>`,
+    subject: `Your ${asset.asset_name || "Ventariq"} Planner Is Ready`,
+    html: `
+      <p>Hello ${customer.full_name ?? ""},</p>
+      <p>Thank you for your purchase. Your planner is attached to this email and is also available to download here:</p>
+      <p><a href="${downloadUrl}">Download your planner</a></p>
+      <p>Best regards,<br/>Ventariq</p>
+    `,
     attachments: [{ filename, content: buffer.toString("base64") }],
   });
 

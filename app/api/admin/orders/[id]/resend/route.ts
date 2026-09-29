@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import { createAdminClient } from "@/lib/supabase-admin";
-import { fetchAssetBuffer } from "@/lib/assestDelivery";
+import {
+  fetchAssetBuffer,
+  resolveAssetDownloadUrl,
+} from "@/lib/assestDelivery";
 import { resend } from "@/lib/resend";
 
 export async function POST(
@@ -90,7 +93,7 @@ export async function POST(
 
     const { data: asset, error: assetError } = await supabase
       .from("download_assets")
-      .select("id, asset_name, asset_url")
+      .select("id, asset_name, asset_url, storage_bucket, storage_path")
       .eq("id", downloadAssetId)
       .eq("active", true)
       .maybeSingle();
@@ -105,12 +108,18 @@ export async function POST(
 
     const buffer = await fetchAssetBuffer(supabase, asset);
     const filename = `${asset.asset_name || order.product_sku || "ventariq-planner"}.pdf`;
+    const downloadUrl = await resolveAssetDownloadUrl(supabase, asset, 60 * 60 * 24 * 7);
 
     const { error: sendError } = await resend.emails.send({
       to: order.customers.email,
       from: process.env.FROM_EMAIL || "Ventariq <info@stratxct.com>",
       subject: `Your ${asset.asset_name || "Ventariq"} Planner`,
-      html: `<p>Hello ${order.customers.full_name ?? ""},</p><p>Here is your Ventariq planner again.</p><p>Best regards,<br/>Ventariq</p>`,
+      html: `
+        <p>Hello ${order.customers.full_name ?? ""},</p>
+        <p>Here is your Ventariq planner again. It is attached to this email and also available to download here:</p>
+        <p><a href="${downloadUrl}">Download your planner</a></p>
+        <p>Best regards,<br/>Ventariq</p>
+      `,
       attachments: [{ filename, content: buffer.toString("base64") }],
     });
 

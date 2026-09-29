@@ -15,6 +15,32 @@ export type DownloadAsset = {
   storage_path?: string | null;
 };
 
+export async function resolveAssetDownloadUrl(
+  supabase: SupabaseClient,
+  asset: DownloadAsset,
+  expiresInSeconds = 60 * 60 * 24
+): Promise<string> {
+  if (asset.asset_url) {
+    return asset.asset_url;
+  }
+
+  if (asset.storage_bucket && asset.storage_path) {
+    const { data, error } = await supabase.storage
+      .from(asset.storage_bucket)
+      .createSignedUrl(asset.storage_path, expiresInSeconds);
+
+    if (error || !data?.signedUrl) {
+      throw new Error(
+        `Could not generate signed URL for ${asset.storage_bucket}/${asset.storage_path}: ${error?.message ?? "no signed URL"}`
+      );
+    }
+
+    return data.signedUrl;
+  }
+
+  throw new Error("Asset has neither a storage path nor an asset_url");
+}
+
 export async function fetchAssetBuffer(
   supabase: SupabaseClient,
   asset: DownloadAsset
