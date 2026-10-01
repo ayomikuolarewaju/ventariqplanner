@@ -252,7 +252,7 @@ export default function ChatWidget() {
       setLeadStatus("idle");
       setMessages((m) => [
         ...m,
-        { role: "assistant", content: "Sorry, that didn't go through. Try again, or email us at [hello@ventariq.com](mailto:hello@ventariq.com)." },
+        { role: "assistant", content: "Sorry, that didn't go through. Try again, or email us at [info@stratxct.com](mailto:info@stratxct.com)." },
       ]);
     }
   }

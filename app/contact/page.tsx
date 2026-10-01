@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 export default function ContactPage() {
-  const [status, setStatus] = useState<"idle" | "sent">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [form, setForm] = useState({ name: "", email: "", message: "" });
 
   function handleChange(
@@ -12,14 +12,21 @@ export default function ContactPage() {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const subject = encodeURIComponent(`Message from ${form.name}`);
-    const body = encodeURIComponent(
-      `Name: ${form.name}\nEmail: ${form.email}\n\n${form.message}`
-    );
-    window.location.href = `mailto:info@stratxct.com?subject=${subject}&body=${body}`;
-    setStatus("sent");
+    setStatus("sending");
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      setStatus(response.ok ? "sent" : "error");
+    } catch {
+      setStatus("error");
+    }
   }
 
   return (
@@ -49,11 +56,10 @@ export default function ContactPage() {
             {status === "sent" ? (
               <div className="py-10 text-center">
                 <p className="font-serif text-2xl text-[#8C6423]">
-                  Email draft opened.
+                  Message sent.
                 </p>
                 <p className="mt-3 text-[#5A6472]">
-                  Your email app should open with your message ready. Send it
-                  there to reach us.
+                  Thanks for getting in touch. We&apos;ll reply within 1 business day.
                 </p>
               </div>
             ) : (
@@ -101,10 +107,16 @@ export default function ContactPage() {
 
                 <button
                   type="submit"
-                  className="rounded-[5px] bg-[#B8863B] px-6 py-3 text-[15px] font-bold text-[#0D1420] transition-colors hover:bg-[#c99a4d]"
+                  disabled={status === "sending"}
+                  className="rounded-[5px] bg-[#B8863B] px-6 py-3 text-[15px] font-bold text-[#0D1420] transition-colors hover:bg-[#c99a4d] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Send Message
+                  {status === "sending" ? "Sending..." : "Send Message"}
                 </button>
+                {status === "error" && (
+                  <p role="alert" className="text-sm text-red-700">
+                    We couldn&apos;t send your message. Please try again or email info@stratxct.com directly.
+                  </p>
+                )}
               </div>
             )}
           </form>
